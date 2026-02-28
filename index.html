@@ -1,0 +1,1941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pratt OEA · Service Ecosystem Map</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Lora:ital,wght@0,500;0,700;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+/* ─── TOKENS ─────────────────────────────────────────────── */
+:root {
+  --ink:      #141418;
+  --ink2:     #3A3A46;
+  --muted:    #8A8A9A;
+  --border:   rgba(0,0,0,0.08);
+  --bg:       #F2F0EB;
+  --surface:  #FFFFFF;
+  --glass:    rgba(255,255,255,0.88);
+
+  /* Category palette */
+  --oea:      #D4A843;
+  --admin:    #7C6FCD;
+  --channel:  #3A9CC8;
+  --partner:  #7A8C6E;
+  --financial:#C4785A;
+  --student:  #C4956A;
+  --risk:     #C05050;
+
+  /* Flow type palette */
+  --flow-info:     #4A9EC4;
+  --flow-financial:#E8A040;
+  --flow-emotional:#C46090;
+  --flow-authority:#7C6FCD;
+  --flow-task:     #6EB88A;
+
+  /* Status */
+  --broken:   #E05050;
+  --strained: #E8A040;
+  --healthy:  #5AB870;
+  --absent:   #8A8A9A;
+
+  --sidebar-w: 340px;
+  --topbar-h:  54px;
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+
+html,body { height:100%; overflow:hidden; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Sora', sans-serif;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── TOPBAR ─────────────────────────────────────────────── */
+#topbar {
+  height: var(--topbar-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  gap: 14px;
+  flex-shrink: 0;
+  z-index: 400;
+  box-shadow: 0 1px 0 var(--border), 0 2px 12px rgba(0,0,0,0.04);
+}
+
+.logo {
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+.logo-mark {
+  width: 30px; height: 30px;
+  background: var(--ink);
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Lora', serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--oea);
+  letter-spacing: -0.02em;
+}
+.logo-text { line-height: 1; }
+.logo-text strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.logo-text span {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.tb-divider { width: 1px; height: 22px; background: var(--border); }
+
+/* Phase bar */
+.phase-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px 4px;
+}
+.phase-pill {
+  padding: 4px 11px;
+  border-radius: 16px;
+  font-size: 10.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .18s;
+  color: var(--muted);
+  white-space: nowrap;
+  border: none; background: transparent;
+  font-family: 'Sora', sans-serif;
+}
+.phase-pill:hover { color: var(--ink); }
+.phase-pill.active {
+  background: var(--ink);
+  color: #fff;
+  font-weight: 600;
+}
+.phase-pill.critical.active { background: #C05050; }
+
+/* View toggles */
+.view-set {
+  display: flex; gap: 4px;
+  margin-left: auto;
+}
+.vbtn {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: transparent;
+  font-family: 'Sora', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex; align-items: center; gap: 5px;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.vbtn:hover { color: var(--ink); border-color: rgba(0,0,0,0.18); }
+.vbtn.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+.vbtn svg { flex-shrink: 0; }
+
+/* Search */
+.search-wrap {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 11px;
+  width: 190px;
+  transition: border-color .15s;
+}
+.search-wrap:focus-within { border-color: var(--ink); }
+.search-wrap input {
+  border: none; background: none; outline: none;
+  font-family: 'Sora', sans-serif;
+  font-size: 11.5px; color: var(--ink); width: 100%;
+}
+.search-wrap input::placeholder { color: var(--muted); }
+
+/* ─── MAIN ───────────────────────────────────────────────── */
+#main { flex: 1; display: flex; overflow: hidden; }
+
+/* ─── CANVAS ─────────────────────────────────────────────── */
+#cvs { flex: 1; position: relative; overflow: hidden; }
+
+svg#g {
+  width: 100%; height: 100%;
+  cursor: grab;
+}
+svg#g.drag { cursor: grabbing; }
+
+/* ─── FLOATING PANELS ────────────────────────────────────── */
+
+/* Legend */
+#legend {
+  position: absolute;
+  bottom: 18px; left: 18px;
+  width: 210px;
+  background: var(--glass);
+  backdrop-filter: blur(18px);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 15px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.09);
+  z-index: 200;
+  font-size: 11px;
+}
+.leg-section { margin-bottom: 11px; }
+.leg-section:last-child { margin-bottom: 0; }
+.leg-head {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+.leg-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 3px 5px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background .15s;
+  margin-bottom: 2px;
+}
+.leg-row:hover { background: rgba(0,0,0,0.04); }
+.leg-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.leg-line {
+  width: 22px; height: 3px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  position: relative;
+}
+.leg-line.dashed {
+  background: none;
+  border-top: 2.5px dashed;
+}
+.leg-label { color: var(--ink2); font-size: 10.5px; }
+
+/* Flow-type legend strokes */
+.stroke-info { background: var(--flow-info); }
+.stroke-financial { background: var(--flow-financial); }
+.stroke-emotional { background: var(--flow-emotional); }
+.stroke-authority { background: var(--flow-authority); }
+.stroke-task { background: var(--flow-task); }
+.stroke-risk { border-top-color: var(--risk); }
+
+/* Zoom */
+#zoom-btns {
+  position: absolute;
+  bottom: 18px; right: 18px;
+  display: flex; flex-direction: column; gap: 4px;
+  z-index: 200;
+}
+.zbtn {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  color: var(--ink);
+  font-size: 16px; font-weight: 300;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: all .15s;
+}
+.zbtn:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+/* Phase label floating */
+#phase-label {
+  position: absolute;
+  top: 14px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  background: var(--glass);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 5px 14px 5px 10px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 500;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .3s;
+}
+#phase-label.show { opacity: 1; }
+#phase-label .pl-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* Scope badge */
+#scope-badge {
+  position: absolute;
+  top: 14px; right: 18px;
+  z-index: 200;
+  display: flex; gap: 6px;
+}
+.scope-tag {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.scope-in  { background: rgba(90,184,112,0.15); color: #3A8A52; border: 1px solid rgba(90,184,112,0.3); }
+.scope-out { background: rgba(138,138,154,0.12); color: var(--muted); border: 1px solid var(--border); }
+
+/* Stats row */
+#stats-row {
+  position: absolute;
+  top: 14px; left: 18px;
+  z-index: 200;
+  display: flex; gap: 6px;
+}
+.stat-pill {
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 7px 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.stat-pill .sv {
+  font-size: 15px; font-weight: 700;
+  line-height: 1; color: var(--ink);
+  font-family: 'Lora', serif;
+}
+.stat-pill .sl {
+  font-size: 9px; font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 2px;
+}
+.stat-pill.danger .sv { color: var(--risk); }
+
+/* ─── SIDEBAR ─────────────────────────────────────────────── */
+#sidebar {
+  width: var(--sidebar-w);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  transition: width .28s cubic-bezier(.4,0,.2,1);
+  flex-shrink: 0;
+  box-shadow: -3px 0 20px rgba(0,0,0,0.05);
+}
+#sidebar.closed { width: 0; }
+
+.sb-head {
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.sb-kicker {
+  font-size: 9.5px; font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+.sb-title {
+  font-family: 'Lora', serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.25;
+}
+
+.sb-scroll { flex: 1; overflow-y: auto; padding: 0; }
+.sb-scroll::-webkit-scrollbar { width: 3px; }
+.sb-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+
+/* Sidebar empty */
+.sb-empty {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  height: 100%; padding: 32px 24px;
+  text-align: center; gap: 14px;
+}
+.sb-empty-icon { font-size: 2.8rem; opacity: 0.25; }
+.sb-empty-title { font-family: 'Lora', serif; font-size: 15px; color: var(--ink2); }
+.sb-empty-desc { font-size: 11.5px; color: var(--muted); line-height: 1.65; }
+
+/* Sidebar sections */
+.sb-section {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.sb-section:last-child { border-bottom: none; }
+.sb-sec-head {
+  font-size: 9.5px; font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.sb-sec-count {
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Node badge */
+.node-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+/* Description */
+.sb-desc {
+  font-size: 12px; line-height: 1.7;
+  color: var(--ink2);
+}
+
+/* Status row */
+.status-row {
+  display: flex; gap: 7px; flex-wrap: wrap;
+  margin-top: 12px;
+}
+.status-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 9px;
+  border-radius: 20px;
+  font-size: 10px; font-weight: 600;
+  border: 1.5px solid;
+}
+.status-tag.broken   { color: var(--broken);   border-color: rgba(192,80,80,0.3);  background: rgba(192,80,80,0.07); }
+.status-tag.strained { color: var(--strained); border-color: rgba(232,160,64,0.3); background: rgba(232,160,64,0.07); }
+.status-tag.healthy  { color: var(--healthy);  border-color: rgba(90,184,112,0.3); background: rgba(90,184,112,0.07); }
+.status-tag.scope-in { color: #3A8A52; border-color: rgba(90,184,112,0.3); background: rgba(90,184,112,0.07); }
+.status-tag.scope-out{ color: var(--muted); border-color: var(--border); background: var(--bg); }
+
+/* Goals list */
+.goal-list { display: flex; flex-direction: column; gap: 7px; }
+.goal-item {
+  display: flex; align-items: flex-start; gap: 9px;
+  font-size: 11.5px; line-height: 1.55; color: var(--ink2);
+}
+.goal-bullet {
+  width: 5px; height: 5px; border-radius: 50%;
+  margin-top: 6px; flex-shrink: 0;
+}
+
+/* Influence meter */
+.influence-bar {
+  margin-top: 10px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.inf-row {
+  display: flex; align-items: center; gap: 9px;
+  font-size: 11px;
+}
+.inf-label { width: 72px; color: var(--muted); flex-shrink: 0; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
+.inf-track {
+  flex: 1; height: 5px;
+  background: var(--bg);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.inf-fill { height: 100%; border-radius: 3px; transition: width .5s .1s; }
+.inf-val { width: 24px; text-align: right; font-size: 10.5px; font-weight: 600; color: var(--ink); }
+
+/* Flow exchanges */
+.flow-list { display: flex; flex-direction: column; gap: 7px; }
+.flow-item {
+  display: flex; gap: 10px;
+  background: var(--bg);
+  border-radius: 9px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all .15s;
+  border: 1px solid transparent;
+}
+.flow-item:hover { border-color: var(--border); background: white; }
+.flow-type-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+.flow-content { flex: 1; }
+.flow-direction {
+  font-size: 9.5px; font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 2px;
+}
+.flow-label { font-size: 11.5px; color: var(--ink); line-height: 1.4; font-weight: 500; }
+.flow-channel {
+  margin-top: 4px;
+  font-size: 10px; color: var(--muted);
+  display: flex; align-items: center; gap: 4px;
+}
+.flow-friction {
+  margin-top: 4px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.flow-friction.broken   { background: rgba(192,80,80,0.1); color: var(--broken); }
+.flow-friction.strained { background: rgba(232,160,64,0.1); color: var(--strained); }
+.flow-friction.healthy  { background: rgba(90,184,112,0.1); color: var(--healthy); }
+
+/* Connected chips */
+.conn-wrap { display: flex; flex-wrap: wrap; gap: 5px; }
+.conn-chip {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 10.5px; font-weight: 500;
+  cursor: pointer;
+  border: 1.5px solid;
+  background: white;
+  transition: all .15s;
+}
+.conn-chip:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+/* Pain point cards */
+.pain-card {
+  background: rgba(192,80,80,0.05);
+  border: 1px solid rgba(192,80,80,0.2);
+  border-radius: 9px;
+  padding: 11px 13px;
+  margin-bottom: 8px;
+  font-size: 11.5px; line-height: 1.55;
+  color: var(--ink2);
+}
+.pain-card .pain-head {
+  font-weight: 700; color: var(--broken);
+  font-size: 11px; margin-bottom: 4px;
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* Channel pill */
+.channel-wrap { display: flex; flex-wrap: wrap; gap: 5px; }
+.channel-pill {
+  padding: 4px 9px;
+  border-radius: 6px;
+  font-size: 10px; font-weight: 600;
+  display: flex; align-items: center; gap: 5px;
+}
+
+/* Intervention card */
+.intervention-card {
+  background: rgba(90,184,112,0.06);
+  border: 1px solid rgba(90,184,112,0.25);
+  border-radius: 9px;
+  padding: 11px 13px;
+  margin-bottom: 8px;
+}
+.int-head { font-weight: 700; font-size: 11.5px; color: #2E7A46; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+.int-body { font-size: 11px; color: var(--ink2); line-height: 1.55; }
+
+/* ─── TOOLTIP ─────────────────────────────────────────────── */
+#tt {
+  position: fixed; z-index: 999;
+  pointer-events: none;
+  opacity: 0; transition: opacity .12s;
+  background: rgba(20,20,24,0.93);
+  backdrop-filter: blur(10px);
+  color: #F0EEE8;
+  padding: 9px 13px;
+  border-radius: 9px;
+  max-width: 220px;
+  font-size: 11.5px; line-height: 1.4;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+}
+#tt.show { opacity: 1; }
+#tt .tt-name { font-weight: 600; }
+#tt .tt-sub { font-size: 10px; opacity: 0.6; margin-top: 2px; }
+#tt .tt-friction {
+  margin-top: 6px;
+  font-size: 10px; font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+/* ─── SVG elements ─────────────────────────────────────────── */
+@keyframes dash-move {
+  to { stroke-dashoffset: -20; }
+}
+.edge-animated {
+  animation: dash-move 1.2s linear infinite;
+}
+
+@keyframes pulse-out {
+  0%   { r: var(--pr); opacity: .5; }
+  100% { r: calc(var(--pr) + 16px); opacity: 0; }
+}
+
+@keyframes sb-in {
+  from { opacity:0; transform: translateY(6px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.sb-ani { animation: sb-in .22s ease forwards; }
+
+/* Phase highlight zone */
+.phase-zone {
+  pointer-events: none;
+  transition: opacity .3s;
+}
+
+/* Absent node marker */
+.absent-ring {
+  stroke-dasharray: 5 3;
+  animation: dash-move 2s linear infinite;
+}
+</style>
+</head>
+<body>
+
+<!-- ─── TOPBAR ────────────────────────────────────────── -->
+<div id="topbar">
+  <div class="logo">
+    <div class="logo-mark">P</div>
+    <div class="logo-text">
+      <strong>OEA Service Ecosystem</strong>
+      <span>Pratt Institute · Study Abroad</span>
+    </div>
+  </div>
+  <div class="tb-divider"></div>
+
+  <!-- Phase filter -->
+  <div class="phase-bar">
+    <button class="phase-pill active" data-phase="all">All Phases</button>
+    <button class="phase-pill" data-phase="discovery">Discovery</button>
+    <button class="phase-pill" data-phase="application">Application</button>
+    <button class="phase-pill critical" data-phase="post-deposit">⚠ Post-Deposit</button>
+    <button class="phase-pill" data-phase="departure">Departure</button>
+    <button class="phase-pill" data-phase="post-abroad">Post-Abroad</button>
+  </div>
+
+  <div class="tb-divider"></div>
+
+  <!-- View mode -->
+  <div class="view-set">
+    <button class="vbtn active" data-view="all" title="Show all relationships">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      All Flows
+    </button>
+    <button class="vbtn" data-view="info" title="Information flows only">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Info
+    </button>
+    <button class="vbtn" data-view="financial" title="Financial flows">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Financial
+    </button>
+    <button class="vbtn" data-view="emotional" title="Emotional/social flows">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      Emotional
+    </button>
+    <button class="vbtn" data-view="friction" title="Show friction only">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Friction
+    </button>
+  </div>
+
+  <div class="search-wrap">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" color="var(--muted)"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input id="search" placeholder="Search stakeholders…">
+  </div>
+
+  <button class="vbtn" id="toggle-sb" style="margin-left:4px;">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+    Panel
+  </button>
+</div>
+
+<!-- ─── MAIN ──────────────────────────────────────────── -->
+<div id="main">
+  <div id="cvs">
+
+    <!-- Stats row -->
+    <div id="stats-row">
+      <div class="stat-pill danger">
+        <div class="sv">39.28%</div>
+        <div class="sl">Withdrawal Rate</div>
+      </div>
+      <div class="stat-pill">
+        <div class="sv">26</div>
+        <div class="sl">Stakeholders</div>
+      </div>
+      <div class="stat-pill">
+        <div class="sv">5</div>
+        <div class="sl">Friction Points</div>
+      </div>
+      <div class="stat-pill">
+        <div class="sv">3</div>
+        <div class="sl">Channels</div>
+      </div>
+    </div>
+
+    <!-- Phase floating label -->
+    <div id="phase-label">
+      <div class="pl-dot" id="pl-dot"></div>
+      <span id="pl-text"></span>
+    </div>
+
+    <!-- Scope badges -->
+    <div id="scope-badge">
+      <span class="scope-tag scope-in">🎯 In Scope: Post-Deposit Phase</span>
+      <span class="scope-tag scope-out">⊘ Out: Terra Dotta · Visa Policy · Host Institution</span>
+    </div>
+
+    <svg id="g">
+      <defs>
+        <!-- Arrow markers for each flow type -->
+        <marker id="arr-info"      markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><path d="M0,0 L0,7 L9,3.5 z" fill="#4A9EC4" opacity="0.85"/></marker>
+        <marker id="arr-financial" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><path d="M0,0 L0,7 L9,3.5 z" fill="#E8A040" opacity="0.85"/></marker>
+        <marker id="arr-emotional" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><path d="M0,0 L0,7 L9,3.5 z" fill="#C46090" opacity="0.85"/></marker>
+        <marker id="arr-authority" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><path d="M0,0 L0,7 L9,3.5 z" fill="#7C6FCD" opacity="0.85"/></marker>
+        <marker id="arr-task"      markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><path d="M0,0 L0,7 L9,3.5 z" fill="#6EB88A" opacity="0.85"/></marker>
+        <marker id="arr-risk"      markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><path d="M0,0 L0,7 L9,3.5 z" fill="#C05050" opacity="0.85"/></marker>
+        <!-- Highlighted versions -->
+        <marker id="arr-info-hi"      markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto"><path d="M0,0 L0,8 L10,4 z" fill="#4A9EC4"/></marker>
+        <marker id="arr-financial-hi" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto"><path d="M0,0 L0,8 L10,4 z" fill="#E8A040"/></marker>
+        <marker id="arr-emotional-hi" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto"><path d="M0,0 L0,8 L10,4 z" fill="#C46090"/></marker>
+        <marker id="arr-authority-hi" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto"><path d="M0,0 L0,8 L10,4 z" fill="#7C6FCD"/></marker>
+        <marker id="arr-task-hi"      markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto"><path d="M0,0 L0,8 L10,4 z" fill="#6EB88A"/></marker>
+        <marker id="arr-risk-hi"      markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto"><path d="M0,0 L0,8 L10,4 z" fill="#C05050"/></marker>
+
+        <filter id="shadow-soft" x="-25%" y="-25%" width="150%" height="150%">
+          <feDropShadow dx="0" dy="3" stdDeviation="7" flood-color="rgba(0,0,0,0.14)"/>
+        </filter>
+        <filter id="glow-sel" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="10" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="glow-node" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="6" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <g id="groot"></g>
+    </svg>
+
+    <!-- Legend -->
+    <div id="legend">
+      <div class="leg-section">
+        <div class="leg-head">Stakeholder Type</div>
+        <div class="leg-row" data-cat="oea">      <div class="leg-dot" style="background:var(--oea)"></div>      <span class="leg-label">OEA Units & Leadership</span></div>
+        <div class="leg-row" data-cat="admin">    <div class="leg-dot" style="background:var(--admin)"></div>    <span class="leg-label">Administration</span></div>
+        <div class="leg-row" data-cat="channel">  <div class="leg-dot" style="background:var(--channel)"></div>  <span class="leg-label">Digital Channels</span></div>
+        <div class="leg-row" data-cat="partner">  <div class="leg-dot" style="background:var(--partner)"></div>  <span class="leg-label">Partner Institutions</span></div>
+        <div class="leg-row" data-cat="financial"><div class="leg-dot" style="background:var(--financial)"></div><span class="leg-label">Financial & Academic</span></div>
+        <div class="leg-row" data-cat="student">  <div class="leg-dot" style="background:var(--student)"></div>  <span class="leg-label">Student Stakeholders</span></div>
+        <div class="leg-row" data-cat="risk">     <div class="leg-dot" style="background:var(--risk)"></div>     <span class="leg-label">Risk & External Factors</span></div>
+      </div>
+      <div class="leg-section">
+        <div class="leg-head">Flow Type</div>
+        <div class="leg-row"><div class="leg-line stroke-info"></div>        <span class="leg-label">Information</span></div>
+        <div class="leg-row"><div class="leg-line stroke-financial"></div>   <span class="leg-label">Financial</span></div>
+        <div class="leg-row"><div class="leg-line stroke-emotional"></div>   <span class="leg-label">Emotional/Social</span></div>
+        <div class="leg-row"><div class="leg-line stroke-authority"></div>   <span class="leg-label">Authority/Decision</span></div>
+        <div class="leg-row"><div class="leg-line stroke-task"></div>        <span class="leg-label">Task/Coordination</span></div>
+        <div class="leg-row"><div class="leg-line dashed stroke-risk" style="border-top-color:var(--risk)"></div><span class="leg-label">Risk Flow</span></div>
+      </div>
+      <div class="leg-section">
+        <div class="leg-head">Relationship Status</div>
+        <div class="leg-row"><div class="leg-dot" style="background:var(--broken);box-shadow:0 0 0 2px rgba(192,80,80,0.25)"></div><span class="leg-label">Broken / Absent</span></div>
+        <div class="leg-row"><div class="leg-dot" style="background:var(--strained)"></div><span class="leg-label">Strained / Fragmented</span></div>
+        <div class="leg-row"><div class="leg-dot" style="background:var(--healthy)"></div><span class="leg-label">Functioning Well</span></div>
+      </div>
+    </div>
+
+    <!-- Zoom -->
+    <div id="zoom-btns">
+      <button class="zbtn" id="zi">+</button>
+      <button class="zbtn" id="zo">−</button>
+      <button class="zbtn" id="zf">⊙</button>
+    </div>
+  </div>
+
+  <!-- ─── SIDEBAR ──────────────────────────────────────── -->
+  <div id="sidebar">
+    <div class="sb-head">
+      <div class="sb-kicker" id="sb-kicker">Ecosystem Explorer</div>
+      <div class="sb-title" id="sb-title">Select a node</div>
+    </div>
+    <div class="sb-scroll" id="sb-body">
+      <div class="sb-empty">
+        <div class="sb-empty-icon">◎</div>
+        <div class="sb-empty-title">Stakeholder Intelligence</div>
+        <div class="sb-empty-desc">Click any node to explore detailed stakeholder profiles, value flows, friction points, communication channels, and design implications.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="tt">
+  <div class="tt-name" id="tt-name"></div>
+  <div class="tt-sub" id="tt-sub"></div>
+  <div class="tt-friction" id="tt-friction"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════
+
+const FLOW = {
+  info:      { color:'#4A9EC4', label:'Information' },
+  financial: { color:'#E8A040', label:'Financial' },
+  emotional: { color:'#C46090', label:'Emotional/Social' },
+  authority: { color:'#7C6FCD', label:'Authority/Decision' },
+  task:      { color:'#6EB88A', label:'Task/Coordination' },
+  risk:      { color:'#C05050', label:'Risk Flow' },
+};
+
+const CAT = {
+  oea:      { color:'#D4A843', text:'#3A2800', label:'OEA Unit' },
+  admin:    { color:'#7C6FCD', text:'#FFFFFF', label:'Administration' },
+  channel:  { color:'#3A9CC8', text:'#FFFFFF', label:'Digital Channel' },
+  partner:  { color:'#7A8C6E', text:'#FFFFFF', label:'Partner Institution' },
+  financial:{ color:'#C4785A', text:'#FFFFFF', label:'Financial & Academic' },
+  student:  { color:'#C4956A', text:'#3A1A00', label:'Student Stakeholder' },
+  risk:     { color:'#C05050', text:'#FFFFFF', label:'Risk Factor' },
+};
+
+// Status
+const ST = { broken:'broken', strained:'strained', healthy:'healthy', absent:'absent' };
+
+// Phases when each stakeholder is ACTIVE
+const ALL_PHASES = ['discovery','application','post-deposit','departure','post-abroad'];
+
+const NODES = [
+  // ── Core OEA ──────────────────────────────────────────────
+  { id:'pratt-oea', label:'Pratt OEA', sub:'Office of Education Abroad', cat:'oea', r:62,
+    phases: ALL_PHASES, scope:'in',
+    inScope: true,
+    power:90, interest:95, emotionalLoad:80,
+    desc:'The institutional backbone of all outbound study abroad at Pratt. Coordinates both faculty-led and semester-exchange programs, manages partner relationships, and is the primary support system students should — but often can\'t — easily access.',
+    painPoints:[
+      { head:'Fragmented Communication Hub', body:'OEA sends information via Terra Dotta, email, and PDF docs. Students must reconcile 3 channels with no single source of truth.' },
+      { head:'Coordination Overload', body:'Small staff managing multiple concurrent programs while also fielding last-minute student questions that should be answered earlier.' }
+    ],
+    goals:['Increase student retention post-deposit','Maintain and grow 30+ partner relationships','Ensure program viability through consistent enrollment','Build Pratt\'s international reputation'],
+    channels:['Terra Dotta','Email','In-person office hours'],
+    interventions:['Planner Passport: centralized step-by-step tracker','Support Suitcase: structured orientation resource','Standardized faculty communication protocols'],
+    x:0, y:0 },
+
+  { id:'oea-exchange', label:'Exchange Program', sub:'Semester-long', cat:'oea', r:50,
+    phases:['discovery','application','post-deposit','departure','post-abroad'], scope:'in',
+    power:70, interest:85, emotionalLoad:60,
+    desc:'Manages full-semester exchanges placing Pratt students at partner universities globally. Bilateral agreement requires reciprocal student exchange. Longer timeline creates different friction patterns than faculty-led programs.',
+    painPoints:[
+      { head:'Credit Transfer Opacity', body:'Students unsure if abroad credits will count toward their degree. Academic advisor and OEA are not always aligned.' }
+    ],
+    goals:['Place students successfully at partner schools','Maintain reciprocal exchange agreements','Ensure seamless credit transfer process'],
+    channels:['Terra Dotta','Email','Partner school portals'],
+    x:-260, y:60 },
+
+  { id:'oea-faculty', label:'Faculty-led Program', sub:'Short-term (Critical)', cat:'oea', r:50,
+    phases:['discovery','application','post-deposit','departure','post-abroad'], scope:'in',
+    power:70, interest:90, emotionalLoad:75,
+    desc:'Short-term programs led by Pratt faculty during academic breaks. HIGHEST WITHDRAWAL RISK. 39.28% of students withdraw post-deposit. Compressed timeline creates compounding pressure around visa, financial, and logistical requirements arriving simultaneously.',
+    painPoints:[
+      { head:'Post-Deposit Danger Zone', body:'After deposit, students face visa docs, insurance enrollment, financial payments, and course approvals — all at once, with no clear sequence or single guide.' },
+      { head:'Faculty Admin Overload', body:'Faculty leaders absorb administrative tasks beyond their academic role, creating inconsistent student communication across different programs.' }
+    ],
+    goals:['Retain students post-deposit','Deliver enriching short-term academic experiences','Reduce administrative burden on faculty leaders'],
+    channels:['Terra Dotta','Email','Canvas (academic)'],
+    interventions:['Standardized pre-departure communication timeline','Faculty admin support handoff to OEA staff'],
+    x:260, y:60 },
+
+  { id:'oea-staff-ex', label:'OEA Staff', sub:'Exchange (Olivia, Paige)', cat:'oea', r:28,
+    phases:ALL_PHASES, scope:'in',
+    power:55, interest:85, emotionalLoad:70,
+    desc:'Day-to-day operations staff for the Exchange Program. Primary student contact point for logistics, documentation, and support queries.',
+    painPoints:[{ head:'Reactive Support Model', body:'Staff spend significant time fielding urgent queries that proper proactive communication could prevent.' }],
+    goals:['Process applications efficiently','Maintain partner relationships','Support students through documentation process'],
+    channels:['Email','Terra Dotta','In-person'],
+    x:-230, y:120 },
+
+  { id:'oea-staff-fl', label:'OEA Staff', sub:'Faculty-led (Paige, Topeka)', cat:'oea', r:28,
+    phases:ALL_PHASES, scope:'in',
+    power:55, interest:85, emotionalLoad:75,
+    desc:'Coordinates faculty-led program logistics. Often the last line of support when students are overwhelmed in the post-deposit phase.',
+    painPoints:[{ head:'Surge Support Load', body:'Disproportionate contact volume in post-deposit window when students feel most uncertain.' }],
+    goals:['Coordinate program logistics','Support faculty leaders','Prevent last-minute withdrawals'],
+    channels:['Email','Terra Dotta','Phone'],
+    x:230, y:120 },
+
+  { id:'faculty-prof', label:'Faculty / Professor', sub:'Program Leader', cat:'oea', r:36,
+    phases:['application','post-deposit','departure','post-abroad'], scope:'in',
+    power:65, interest:75, emotionalLoad:65,
+    desc:'Pratt faculty who design and lead short-term programs. Currently absorbing admin tasks (visa reminders, logistics updates) that fall outside their academic role — creating inconsistent student experiences across programs.',
+    painPoints:[
+      { head:'Role Boundary Erosion', body:'Faculty handle student communication on non-academic matters without clear protocols, leading to variable quality of support.' },
+      { head:'Inconsistent Touchpoints', body:'Students in different programs receive very different pre-departure communication depending on their faculty leader\'s admin style.' }
+    ],
+    goals:['Lead academically enriching programs','Maintain research and professional work','Provide consistent but bounded student support'],
+    channels:['Email','Canvas','Direct messaging'],
+    interventions:['Define clear faculty vs. OEA communication boundaries','Provide faculty with communication templates'],
+    x:390, y:120 },
+
+  // ── Administration ────────────────────────────────────────
+  { id:'pratt-admin', label:'Pratt Administration', sub:'Institutional Governance', cat:'admin', r:44,
+    phases:ALL_PHASES, scope:'out',
+    power:95, interest:50, emotionalLoad:10,
+    desc:'Central institutional authority. High power to allocate resources and set policy, but low direct student contact. Institutional constraints (Terra Dotta, budget limits) defined here create downstream friction.',
+    painPoints:[{ head:'Institutional Constraint Origin', body:'Terra Dotta platform limitations and budget constraints originate from this level — but OEA must work around them without ability to change them.' }],
+    goals:['Protect Pratt\'s international reputation','Generate tuition revenue through programs','Maintain accreditation standards'],
+    channels:['Internal governance','Budget cycles'],
+    x:0, y:-310 },
+
+  { id:'pratt-intl', label:'Pratt International', sub:'Department', cat:'admin', r:34,
+    phases:ALL_PHASES, scope:'out',
+    power:60, interest:65, emotionalLoad:20,
+    desc:'Bridges international strategy across Pratt departments. Interfaces between OEA and central administration. Limited direct student impact.',
+    goals:['Support international student pipeline','Facilitate cross-departmental coordination'],
+    channels:['Internal email','Meetings'],
+    x:-210, y:-255 },
+
+  // ── Digital Channels (MISSING from original) ──────────────
+  { id:'terra-dotta', label:'Terra Dotta', sub:'Application Platform', cat:'channel', r:38,
+    phases:['application','post-deposit'], scope:'out',
+    inScope: false,
+    power:80, interest:0, emotionalLoad:0,
+    desc:'The institutional application platform for study abroad. Primary tool for applications, financial requirements, and visa guidance. INSTITUTIONAL CONSTRAINT — out of scope for redesign. Students must use it but find it fragmented and unclear.',
+    painPoints:[
+      { head:'Single Source Problem', body:'Students use Terra Dotta for applications but must cross-reference with email and PDFs to understand what to do next. No unified "what\'s due" view.' },
+      { head:'Out of Scope', body:'Platform is an institutional constraint. Design interventions must work AROUND it, not within it.' }
+    ],
+    goals:['Process applications','Store documentation','Track requirements'],
+    channels:['Web platform'],
+    x:-150, y:-100 },
+
+  { id:'email-channel', label:'Email / PDF', sub:'Primary Comms Channel', cat:'channel', r:34,
+    phases:['post-deposit'], scope:'out',
+    power:40, interest:0, emotionalLoad:0,
+    desc:'The dominant mode of student communication from OEA. Critical information arrives via email and PDF documents. Students report low retention of email-delivered information and inability to retrieve it when needed.',
+    painPoints:[
+      { head:'Email Overload', body:'Critical visa, financial, and logistical information buried in email threads. Students unable to track what they\'ve read or what\'s actionable.' },
+      { head:'No Progressive Disclosure', body:'PDFs dump all information at once rather than surfacing it when relevant to the student\'s current stage.' }
+    ],
+    goals:['Deliver program information','Provide documentation guidance'],
+    channels:['Email','PDF attachments'],
+    x:150, y:-100 },
+
+  { id:'canvas', label:'Canvas LMS', sub:'Academic Platform', cat:'channel', r:28,
+    phases:['departure','post-abroad'], scope:'out',
+    power:30, interest:0, emotionalLoad:0,
+    desc:'Used primarily for academic coursework during and after the abroad program. Mostly backstage during the critical pre-departure phase where withdrawals happen.',
+    goals:['Deliver course content','Track academic progress'],
+    channels:['Web platform'],
+    x:270, y:-90 },
+
+  // ── Partner Institutions ───────────────────────────────────
+  { id:'exchange-sch', label:'Exchange School', sub:'Intl Student Office', cat:'partner', r:40,
+    phases:['application','post-deposit','departure','post-abroad'], scope:'out',
+    power:70, interest:60, emotionalLoad:20,
+    desc:'Partner universities managing incoming Pratt exchange students. Their administrative processes, deadlines, and requirements add another layer of coordination students must navigate with little guidance.',
+    painPoints:[{ head:'External Deadline Opacity', body:'Partner school deadlines and requirements not always communicated clearly through OEA, creating anxiety for students.' }],
+    goals:['Maintain bilateral exchange partnership','Integrate incoming exchange students'],
+    channels:['Email','Partner portals','Direct OEA liaison'],
+    x:-380, y:-80 },
+
+  { id:'prof-foreign', label:'Foreign Faculty', sub:'At Exchange School', cat:'partner', r:32,
+    phases:['departure','post-abroad'], scope:'out',
+    power:40, interest:40, emotionalLoad:30,
+    desc:'Faculty at partner institutions teaching Pratt exchange students. Mostly active post-departure. Limited influence on withdrawal risk.',
+    goals:['Teach exchange students effectively','Build international academic network'],
+    channels:['Direct instruction','Email'],
+    x:-430, y:80 },
+
+  { id:'peers-abroad', label:'Peers Abroad', sub:'Local & Intl Students', cat:'partner', r:28,
+    phases:['departure','post-abroad'], scope:'out',
+    power:20, interest:30, emotionalLoad:50,
+    desc:'Local and international students at partner schools. Informal but meaningful support network for Pratt students once abroad. No role in pre-departure retention.',
+    goals:['Build international friendships','Cultural knowledge exchange'],
+    channels:['Direct social interaction'],
+    x:-400, y:220 },
+
+  // ── Financial & Academic Support ───────────────────────────
+  { id:'academic-adv', label:'Academic Advisor', sub:'Graduation Tracking', cat:'financial', r:36,
+    phases:['discovery','application','post-deposit'], scope:'in',
+    power:65, interest:70, emotionalLoad:40,
+    desc:'Critical but often backstage actor. Students need academic advisors to approve credit transfers and confirm abroad courses won\'t derail graduation — but access to this information is often slow, unclear, or happens too late in the process.',
+    painPoints:[
+      { head:'Hidden Support System', body:'Academic advising support exists but is not surfaced at the moment students feel uncertainty about credits and degree progress.' },
+      { head:'Late Intervention Risk', body:'Students sometimes reach post-deposit before understanding how abroad credits count, creating post-commitment anxiety.' }
+    ],
+    goals:['Ensure academic integrity of abroad experience','Track graduation pathway','Support student confidence in their decision'],
+    channels:['In-person appointments','Email','One Pratt portal'],
+    x:90, y:140 },
+
+  { id:'fin-dept', label:'Financial Department', sub:'Aid & Payments', cat:'financial', r:34,
+    phases:['application','post-deposit'], scope:'in',
+    power:70, interest:55, emotionalLoad:30,
+    desc:'Manages financial aid, tuition, scholarships, and payment schedules related to study abroad. Financial uncertainty is one of the top 5 withdrawal drivers. Yet this department operates largely backstage from the student experience.',
+    painPoints:[
+      { head:'Financial Opacity', body:'Cost breakdown, payment schedules, and financial aid implications remain unclear even after deposit is paid. Students don\'t know total cost until deeply committed.' },
+      { head:'Hidden Aid Resources', body:'Financial aid and scholarships for study abroad exist but are not proactively surfaced to students during the decision phase.' }
+    ],
+    goals:['Process financial aid accurately','Maintain budget compliance','Provide payment clarity to students'],
+    channels:['Terra Dotta (financial modules)','Email','In-person'],
+    interventions:['Surface financial aid options early in discovery phase','Provide clear cost timeline before deposit'],
+    x:-130, y:255 },
+
+  { id:'geoblue', label:'GeoBlue Insurance', sub:'Emergency & Health', cat:'financial', r:28,
+    phases:['post-deposit','departure'], scope:'in',
+    power:60, interest:20, emotionalLoad:10,
+    desc:'Mandatory health and emergency insurance for study abroad students. Enrollment is a required post-deposit step but students often don\'t know about it until late, creating last-minute anxiety.',
+    painPoints:[{ head:'Hidden Requirement', body:'Insurance enrollment is mandatory but not prominently communicated. Surprise requirements add to post-deposit overwhelm.' }],
+    goals:['Provide student health coverage abroad','Process enrollment efficiently'],
+    channels:['Online enrollment portal','Email'],
+    x:-240, y:190 },
+
+  { id:'mentors', label:'Profession Mentors', sub:'Career Support', cat:'financial', r:28,
+    phases:['post-deposit','departure','post-abroad'], scope:'in',
+    power:30, interest:55, emotionalLoad:60,
+    desc:'Industry and career mentors who help students see the professional value of international experience. Emotional support role that helps sustain motivation through difficult pre-departure logistics.',
+    goals:['Connect international experience to career outcomes','Provide motivational support','Build professional networks'],
+    channels:['Direct meetings','Email'],
+    x:265, y:250 },
+
+  // ── Student Stakeholders ───────────────────────────────────
+  { id:'student', label:'Outbound Student', sub:'Primary Actor · Post-Deposit Focus', cat:'student', r:58,
+    phases:ALL_PHASES, scope:'in',
+    power:40, interest:95, emotionalLoad:95,
+    desc:'The central actor whose experience the entire ecosystem must serve. Post-deposit, the student faces a coordination crisis: visa documents, financial payments, insurance enrollment, course approvals, and travel logistics arriving simultaneously with no clear sequence, no single guide, and no visible progress indicator.',
+    painPoints:[
+      { head:'Coordination Overload', body:'Multiple simultaneous requirements (visa, insurance, payments, approvals) with no unified task view. Student is the de-facto coordinator of a fragmented process.' },
+      { head:'Information Fragmentation', body:'Required information distributed across Terra Dotta, email, PDF, Canvas, and word-of-mouth. No single source of truth.' },
+      { head:'Emotional Compounding', body:'Each unresolved question raises anxiety. Uncertainty about one thing (visa timeline) bleeds into confidence about the whole decision.' },
+      { head:'Financial Uncertainty', body:'After paying deposit, students still unclear on total costs, aid availability, and payment deadlines.' },
+      { head:'Invisible Support Systems', body:'Financial aid, academic advising, and insurance resources exist but are not surfaced at the moments students feel most uncertain.' }
+    ],
+    goals:['Navigate pre-departure process with confidence','Access support when uncertain without friction','Feel academically and financially prepared','Build towards professional and personal growth'],
+    channels:['Terra Dotta','Email','In-person','Word of mouth','Past students'],
+    x:0, y:240 },
+
+  { id:'parents', label:'Parents / Family', sub:'Emotional & Financial', cat:'student', r:34,
+    phases:['discovery','application','post-deposit','departure'], scope:'in',
+    power:50, interest:80, emotionalLoad:70,
+    desc:'Family\'s confidence in the process directly affects student decision-making. Unsupported students often turn to family to validate their anxiety — and if family is also uncertain, withdrawal likelihood increases.',
+    painPoints:[{ head:'Second-order Anxiety', body:'Parents who don\'t understand the process or costs reinforce student hesitation, especially around visa and financial uncertainty.' }],
+    goals:['Ensure child safety and wellbeing','Understand and support the financial commitment','Validate the decision to go abroad'],
+    channels:['Direct family communication','OEA parent communications (limited)'],
+    x:-55, y:375 },
+
+  { id:'past-student', label:'Past Students', sub:'Alumni Mentors', cat:'student', r:30,
+    phases:['discovery','application','post-deposit'], scope:'in',
+    power:25, interest:70, emotionalLoad:65,
+    desc:'One of the highest-trust information sources for prospective students. Lived experience validates uncertainty and normalizes the process. Currently underutilized in any formal capacity.',
+    painPoints:[{ head:'Informal & Unstructured', body:'Past student knowledge shared ad hoc, not systematically channeled to prospective students at key decision points.' }],
+    goals:['Share lived experience to help current students','Stay connected to Pratt community'],
+    channels:['Word of mouth','Social media','Informal networks'],
+    interventions:['Formalize peer mentorship program in post-deposit phase'],
+    x:165, y:385 },
+
+  { id:'peers-out', label:'Peer Outbound Students', sub:'Shared Journey', cat:'student', r:28,
+    phases:['post-deposit','departure'], scope:'in',
+    power:20, interest:75, emotionalLoad:65,
+    desc:'Fellow students navigating the same process simultaneously. High mutual trust. Can normalize confusion — or amplify collective anxiety if no one has clear answers.',
+    goals:['Share resources and information','Provide mutual emotional support'],
+    channels:['Direct peer communication','Group chats'],
+    x:315, y:305 },
+
+  // ── Risk Factors ───────────────────────────────────────────
+  { id:'passport', label:'Passport & Visa Docs', sub:'Documentation Risk', cat:'risk', r:32,
+    phases:['post-deposit'], scope:'out',
+    power:85, interest:0, emotionalLoad:0,
+    desc:'Passport acquisition timelines and visa documentation requirements are the #1 source of student confusion in the post-deposit phase. Requirements vary by destination, are time-sensitive, and students have no single place to see what\'s required when.',
+    painPoints:[
+      { head:'No Clear Timeline', body:'Students don\'t know when visa applications must start. Starting too late risks missing departure. Starting without all documents wastes effort.' },
+      { head:'Destination-Specific Opacity', body:'Visa requirements vary by country. OEA communication doesn\'t always clearly differentiate per-program requirements.' }
+    ],
+    goals:['Facilitate legal student entry to destination country'],
+    channels:['Government portals','Consulate appointments','OEA guidance emails'],
+    x:80, y:495 },
+
+  { id:'flight', label:'Flight & Travel', sub:'Logistics Risk', cat:'risk', r:28,
+    phases:['post-deposit','departure'], scope:'out',
+    power:60, interest:0, emotionalLoad:0,
+    desc:'Flight booking is tied to visa timeline and affects both departure date and visa approval window. Students booking flights before visa approval creates compounding risk.',
+    painPoints:[{ head:'Visa-Flight Dependency', body:'Students unsure whether to book flight before visa approval. OEA guidance on sequencing this is often insufficient.' }],
+    goals:['Enable student travel to destination'],
+    channels:['Airline platforms','Travel booking tools'],
+    x:255, y:490 },
+
+  { id:'visa-dest', label:'Destination Visa Office', sub:'Foreign Government', cat:'risk', r:32,
+    phases:['post-deposit'], scope:'out',
+    power:90, interest:0, emotionalLoad:0,
+    desc:'Foreign government visa administration. Completely outside OEA\'s control. Unpredictable processing times and shifting requirements create anxiety that, without proactive support, leads to withdrawal.',
+    painPoints:[{ head:'Uncontrollable External', body:'OEA cannot influence processing times or requirements. Can only help students prepare and manage expectations — currently done poorly.' }],
+    goals:['Process student visa applications','Maintain bilateral academic relations'],
+    channels:['Consulate portals','In-person appointments'],
+    x:-185, y:495 },
+
+  { id:'intl-rel', label:'International Relations', sub:'Geopolitical Risk', cat:'risk', r:28,
+    phases:ALL_PHASES, scope:'out',
+    power:85, interest:0, emotionalLoad:0,
+    desc:'Broader geopolitical context — travel advisories, diplomatic relations, political instability — can suddenly invalidate specific program destinations. Entirely outside OEA control.',
+    goals:['Maintain international student exchange frameworks'],
+    channels:['Government policy','Institutional advisories'],
+    x:-340, y:450 },
+];
+
+// ─── EDGES ──────────────────────────────────────────────────
+
+const EDGES = [
+  // Admin → OEA
+  { s:'pratt-admin', t:'pratt-oea', flow:'authority', label:'Budget allocation & institutional mandate', status:ST.healthy, phases:ALL_PHASES, w:2.5, bidirectional:false },
+  { s:'pratt-oea',   t:'pratt-admin', flow:'info', label:'Program outcomes, enrollment, reputation', status:ST.healthy, phases:ALL_PHASES, w:1.5 },
+  { s:'pratt-admin', t:'terra-dotta', flow:'authority', label:'Institutional constraint — platform locked', status:ST.strained, phases:ALL_PHASES, w:2 },
+  { s:'pratt-intl',  t:'pratt-oea', flow:'task', label:'International strategy coordination', status:ST.healthy, phases:ALL_PHASES, w:1.5 },
+
+  // OEA → Programs
+  { s:'pratt-oea', t:'oea-exchange', flow:'authority', label:'Manages & coordinates exchange program', status:ST.healthy, phases:ALL_PHASES, w:2.5 },
+  { s:'pratt-oea', t:'oea-faculty',  flow:'authority', label:'Manages faculty-led program', status:ST.healthy, phases:ALL_PHASES, w:2.5 },
+
+  // OEA ↔ Digital Channels
+  { s:'pratt-oea',   t:'terra-dotta',    flow:'task', label:'Publishes requirements & tracks applications', status:ST.strained, phases:['application','post-deposit'], w:2, channel:'Terra Dotta' },
+  { s:'pratt-oea',   t:'email-channel',  flow:'info', label:'Sends visa/financial/logistics guidance', status:ST.broken, phases:['post-deposit'], w:2, frictionNote:'Critical info buried in email — low retention', channel:'Email' },
+  { s:'oea-faculty', t:'email-channel',  flow:'info', label:'Program-specific updates from faculty', status:ST.strained, phases:['post-deposit'], w:1.5, frictionNote:'Inconsistent across different faculty leaders' },
+
+  // Channels → Student
+  { s:'terra-dotta',   t:'student', flow:'info', label:'Application status & document checklist', status:ST.strained, phases:['application','post-deposit'], w:2.5, frictionNote:'Fragmented — students must cross-reference with email', channel:'Terra Dotta' },
+  { s:'email-channel', t:'student', flow:'info', label:'Critical pre-departure information', status:ST.broken, phases:['post-deposit'], w:2.5, frictionNote:'High volume, low retention, no task sequencing', channel:'Email' },
+  { s:'canvas',        t:'student', flow:'info', label:'Academic coursework and content', status:ST.healthy, phases:['departure','post-abroad'], w:1.5, channel:'Canvas' },
+
+  // Staff
+  { s:'oea-exchange', t:'oea-staff-ex', flow:'task', label:'Directs daily operations', status:ST.healthy, phases:ALL_PHASES, w:1.5 },
+  { s:'oea-faculty',  t:'oea-staff-fl', flow:'task', label:'Directs daily operations', status:ST.healthy, phases:ALL_PHASES, w:1.5 },
+  { s:'oea-faculty',  t:'faculty-prof', flow:'authority', label:'Program coordination & faculty role', status:ST.strained, phases:['post-deposit','departure'], w:2, frictionNote:'Faculty absorbing admin tasks outside their role' },
+  { s:'oea-staff-ex', t:'student', flow:'info', label:'Application support & logistics guidance', status:ST.healthy, phases:['application','post-deposit'], w:2 },
+  { s:'oea-staff-fl', t:'student', flow:'info', label:'Program logistics & pre-departure support', status:ST.strained, phases:['post-deposit'], w:2, frictionNote:'Reactive support — reached only when overwhelmed' },
+  { s:'faculty-prof',  t:'student', flow:'info',     label:'Program details & academic guidance', status:ST.strained, phases:['post-deposit','departure'], w:2, frictionNote:'Inconsistent — varies by faculty admin style' },
+  { s:'faculty-prof',  t:'student', flow:'emotional', label:'On-ground support while abroad', status:ST.healthy, phases:['departure'], w:1.5 },
+
+  // Partners
+  { s:'oea-exchange', t:'exchange-sch', flow:'task', label:'Bilateral partnership management', status:ST.healthy, phases:['application','post-deposit'], w:2, bidirectional:true },
+  { s:'exchange-sch', t:'prof-foreign', flow:'authority', label:'Employs and directs faculty', status:ST.healthy, phases:['departure'], w:1.5 },
+  { s:'prof-foreign', t:'student', flow:'info', label:'Teaching & academic guidance abroad', status:ST.healthy, phases:['departure','post-abroad'], w:1.5 },
+  { s:'peers-abroad', t:'student', flow:'emotional', label:'Cultural exchange & peer connection', status:ST.healthy, phases:['departure','post-abroad'], w:1.5 },
+
+  // Financial Support → Student
+  { s:'academic-adv', t:'student', flow:'info', label:'Credit transfer approval & graduation path', status:ST.strained, phases:['discovery','application','post-deposit'], w:2, frictionNote:'Hidden — not surfaced at moment of student uncertainty' },
+  { s:'fin-dept',     t:'student', flow:'financial', label:'Financial aid, payment schedules, cost clarity', status:ST.broken, phases:['application','post-deposit'], w:2.5, frictionNote:'Financial opacity is top withdrawal driver post-deposit' },
+  { s:'geoblue',      t:'student', flow:'task', label:'Mandatory insurance enrollment', status:ST.strained, phases:['post-deposit'], w:1.5, frictionNote:'Surprise requirement adds to post-deposit overload' },
+  { s:'mentors',      t:'student', flow:'emotional', label:'Career motivation & emotional support', status:ST.healthy, phases:['post-deposit','departure'], w:1.5 },
+
+  // Pratt Admin → Financial
+  { s:'pratt-admin', t:'fin-dept', flow:'authority', label:'Budget & aid policy', status:ST.healthy, phases:ALL_PHASES, w:1.5 },
+
+  // Student ↔ informal support
+  { s:'parents',     t:'student', flow:'emotional', label:'Family support & confidence reinforcement', status:ST.healthy, phases:['application','post-deposit','departure'], w:2, bidirectional:true },
+  { s:'past-student',t:'student', flow:'info',      label:'Lived experience & process normalisation', status:ST.healthy, phases:['discovery','application','post-deposit'], w:1.5 },
+  { s:'peers-out',   t:'student', flow:'emotional', label:'Peer support & shared anxiety management', status:ST.healthy, phases:['post-deposit','departure'], w:1.5, bidirectional:true },
+
+  // Risk flows
+  { s:'passport',   t:'student',   flow:'risk', label:'Visa confusion — #1 withdrawal driver', status:ST.broken, phases:['post-deposit'], w:3, risk:true, frictionNote:'39% of students don\'t know what\'s required or when' },
+  { s:'visa-dest',  t:'student',   flow:'risk', label:'Unpredictable approval timeline', status:ST.broken, phases:['post-deposit'], w:2.5, risk:true },
+  { s:'visa-dest',  t:'passport',  flow:'risk', label:'Governs documentation requirements', status:ST.absent, phases:['post-deposit'], w:1.5, risk:true },
+  { s:'flight',     t:'student',   flow:'risk', label:'Visa-flight dependency confusion', status:ST.strained, phases:['post-deposit'], w:1.5, risk:true },
+  { s:'intl-rel',   t:'visa-dest', flow:'risk', label:'Policy influence on visa requirements', status:ST.absent, phases:ALL_PHASES, w:1.5, risk:true },
+  { s:'intl-rel',   t:'student',   flow:'risk', label:'Geopolitical safety advisories', status:ST.absent, phases:ALL_PHASES, w:1, risk:true },
+];
+
+// Phase metadata
+const PHASES = {
+  all:         { label:'All Phases',        color:'#141418' },
+  discovery:   { label:'Discovery',         color:'#7A8C6E' },
+  application: { label:'Application',       color:'#3A9CC8' },
+  'post-deposit':{ label:'⚠ Post-Deposit — Critical Zone', color:'#C05050' },
+  departure:   { label:'Departure',         color:'#D4A843' },
+  'post-abroad':{ label:'Post-Abroad',      color:'#7C6FCD' },
+};
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+
+let xform = d3.zoomIdentity;
+let activePhase = 'all';
+let activeView  = 'all';
+let selectedId  = null;
+let searchQ     = '';
+
+const nodeById = {};
+NODES.forEach(n => nodeById[n.id] = n);
+
+// ═══════════════════════════════════════════════════════════
+// SVG SETUP
+// ═══════════════════════════════════════════════════════════
+
+const svg  = d3.select('#g');
+const groot = d3.select('#groot');
+
+const zoom = d3.zoom()
+  .scaleExtent([0.12, 5])
+  .on('zoom', e => {
+    xform = e.transform;
+    groot.attr('transform', e.transform);
+  });
+
+svg.call(zoom).on('dblclick.zoom', null);
+svg.on('mousedown', () => svg.classed('drag', true));
+svg.on('mouseup',   () => svg.classed('drag', false));
+
+// ═══════════════════════════════════════════════════════════
+// FIT VIEW
+// ═══════════════════════════════════════════════════════════
+
+function fitView(padding = 80) {
+  const wrap = document.getElementById('cvs');
+  const W = wrap.clientWidth, H = wrap.clientHeight;
+  const visNodes = NODES.filter(n => nodeVisible(n));
+  if (!visNodes.length) return;
+  const xs = visNodes.map(n => n.x), ys = visNodes.map(n => n.y);
+  const minX = Math.min(...xs) - 80, maxX = Math.max(...xs) + 80;
+  const minY = Math.min(...ys) - 80, maxY = Math.max(...ys) + 80;
+  const cw = maxX - minX, ch = maxY - minY;
+  const sc = Math.min((W - padding*2) / cw, (H - padding*2) / ch, 1.4) * 0.88;
+  const tx = W/2 - sc*(minX + cw/2);
+  const ty = H/2 - sc*(minY + ch/2);
+  svg.transition().duration(700).ease(d3.easeCubicInOut)
+    .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(sc));
+}
+
+// ═══════════════════════════════════════════════════════════
+// VISIBILITY HELPERS
+// ═══════════════════════════════════════════════════════════
+
+function nodeVisible(n) {
+  if (activePhase !== 'all' && !n.phases.includes(activePhase)) return false;
+  if (searchQ && !n.label.toLowerCase().includes(searchQ) && !(n.sub||'').toLowerCase().includes(searchQ)) return false;
+  return true;
+}
+
+function edgeVisible(e) {
+  if (activePhase !== 'all' && !(e.phases||[]).includes(activePhase)) return false;
+  const sn = nodeById[e.s], tn = nodeById[e.t];
+  if (!sn || !tn) return false;
+  if (!nodeVisible(sn) || !nodeVisible(tn)) return false;
+  // View filter
+  if (activeView === 'friction') return e.status === ST.broken || e.status === ST.strained;
+  if (activeView !== 'all' && e.flow !== activeView) return false;
+  return true;
+}
+
+function getNodeOpacity(n) {
+  if (!nodeVisible(n)) return 0.08;
+  if (selectedId) {
+    if (n.id === selectedId) return 1;
+    const conn = EDGES.some(e => (e.s === selectedId && e.t === n.id) || (e.t === selectedId && e.s === n.id));
+    return conn ? 0.92 : 0.15;
+  }
+  return 1;
+}
+
+function getEdgeOpacity(e) {
+  if (!edgeVisible(e)) return 0;
+  const baseOp = e.risk ? 0.55 : 0.5;
+  if (selectedId) {
+    const connected = e.s === selectedId || e.t === selectedId;
+    return connected ? 1 : 0.04;
+  }
+  return baseOp;
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════
+
+function render() {
+  groot.selectAll('*').remove();
+
+  // ── Phase zones ──────────────────────────────────────────
+  if (activePhase === 'post-deposit') {
+    groot.append('ellipse')
+      .attr('cx', 0).attr('cy', 180)
+      .attr('rx', 340).attr('ry', 220)
+      .attr('fill', 'rgba(192,80,80,0.04)')
+      .attr('stroke', 'rgba(192,80,80,0.15)')
+      .attr('stroke-width', 1.5)
+      .attr('stroke-dasharray', '8 5');
+    groot.append('text')
+      .attr('x', 0).attr('y', -50)
+      .attr('text-anchor', 'middle')
+      .attr('font-family', 'Sora, sans-serif')
+      .attr('font-size', 10)
+      .attr('font-weight', 700)
+      .attr('fill', 'rgba(192,80,80,0.5)')
+      .attr('letter-spacing', '0.12em')
+      .text('▲ POST-DEPOSIT CRITICAL ZONE ▲');
+  }
+
+  // ── Edges ────────────────────────────────────────────────
+  const edgeG = groot.append('g').attr('class', 'edge-layer');
+
+  EDGES.forEach(edge => {
+    const sn = nodeById[edge.s], tn = nodeById[edge.t];
+    if (!sn || !tn) return;
+    const op = getEdgeOpacity(edge);
+    if (op < 0.01) return;
+
+    const flowC = FLOW[edge.flow]?.color || '#999';
+    const isHL  = selectedId && (edge.s === selectedId || edge.t === selectedId);
+    const isRisk = edge.risk;
+
+    // Compute curved path
+    const dx = tn.x - sn.x, dy = tn.y - sn.y;
+    const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+    const curv = Math.min(55, dist*0.16);
+    const px = -dy/dist*curv, py = dx/dist*curv;
+    const mx = (sn.x+tn.x)/2 + px, my = (sn.y+tn.y)/2 + py;
+
+    // Shorten to node edge
+    const sr = sn.r + 2, tr = tn.r + 2;
+    const sx = sn.x + (dx/dist)*sr, sy = sn.y + (dy/dist)*sr;
+    const ex = tn.x - (dx/dist)*tr, ey = tn.y - (dy/dist)*tr;
+
+    const pathD = `M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
+    const ftype = edge.flow;
+
+    const eg = edgeG.append('g');
+
+    // Status underlay glow for broken/strained
+    if ((edge.status === ST.broken || edge.status === ST.strained) && op > 0.1) {
+      const glowC = edge.status === ST.broken ? '#C05050' : '#E8A040';
+      eg.append('path')
+        .attr('d', pathD).attr('fill','none')
+        .attr('stroke', glowC)
+        .attr('stroke-width', (isHL ? 6 : 3))
+        .attr('stroke-opacity', isHL ? 0.18 : 0.08)
+        .attr('stroke-linecap','round');
+    }
+
+    // Main edge
+    const ln = eg.append('path')
+      .attr('d', pathD).attr('fill','none')
+      .attr('stroke', flowC)
+      .attr('stroke-width', isHL ? (edge.w||1)*2.5 : (edge.w||1)*1.6)
+      .attr('stroke-opacity', op)
+      .attr('stroke-linecap','round')
+      .attr('stroke-dasharray', isRisk ? '7,5' : 'none')
+      .attr('marker-end', op > 0.05 ? `url(#arr-${isHL ? ftype+'-hi' : ftype})` : 'none');
+
+    // Animated dash for broken/selected
+    if (isRisk && isHL) {
+      ln.attr('class','edge-animated')
+        .attr('stroke-dasharray','10,6');
+    }
+
+    // Bidirectional: reverse arrow
+    if (edge.bidirectional && op > 0.05) {
+      const snC = CAT[sn.cat]?.color || flowC;
+      eg.append('path')
+        .attr('d', `M${ex},${ey} Q${mx},${my} ${sx},${sy}`)
+        .attr('fill','none')
+        .attr('stroke', snC)
+        .attr('stroke-width', isHL ? (edge.w||1)*1.8 : (edge.w||1)*1.1)
+        .attr('stroke-opacity', op*0.55)
+        .attr('stroke-linecap','round')
+        .attr('marker-end', op > 0.05 ? `url(#arr-${CAT[sn.cat] ? sn.cat : ftype})` : 'none');
+    }
+
+    // Edge label on highlight
+    if (isHL && op > 0.3 && edge.label) {
+      const t = 0.5;
+      const bx = (1-t)*(1-t)*sx + 2*(1-t)*t*mx + t*t*ex;
+      const by = (1-t)*(1-t)*sy + 2*(1-t)*t*my + t*t*ey;
+
+      eg.append('rect')
+        .attr('x', bx - 72).attr('y', by - 12)
+        .attr('width', 144).attr('height', 22)
+        .attr('rx', 6).attr('fill','white').attr('opacity',0.93)
+        .attr('filter','url(#shadow-soft)');
+
+      eg.append('text')
+        .attr('x', bx).attr('y', by + 3)
+        .attr('text-anchor','middle')
+        .attr('font-family','Sora, sans-serif')
+        .attr('font-size', 8.5).attr('font-weight',600)
+        .attr('fill', edge.status === ST.broken ? '#C05050' : edge.status === ST.strained ? '#C07030' : '#2A2A2A')
+        .text(edge.label.length > 32 ? edge.label.slice(0,31)+'…' : edge.label);
+
+      // Friction tag
+      if (edge.status === ST.broken || edge.status === ST.strained) {
+        const tagC = edge.status === ST.broken ? '#C05050' : '#E8A040';
+        const tagBg = edge.status === ST.broken ? 'rgba(192,80,80,0.1)' : 'rgba(232,160,64,0.1)';
+        const tagLabel = edge.status === ST.broken ? '✕ Broken' : '~ Strained';
+        eg.append('rect')
+          .attr('x', bx - 30).attr('y', by + 13)
+          .attr('width', 60).attr('height', 15)
+          .attr('rx', 7).attr('fill', tagBg);
+        eg.append('text')
+          .attr('x', bx).attr('y', by + 24)
+          .attr('text-anchor','middle')
+          .attr('font-family','Sora, sans-serif')
+          .attr('font-size', 8).attr('font-weight',700)
+          .attr('fill', tagC)
+          .text(tagLabel);
+      }
+    }
+  });
+
+  // ── Nodes ────────────────────────────────────────────────
+  const nodeG = groot.append('g').attr('class', 'node-layer');
+
+  NODES.forEach(n => {
+    const cat = CAT[n.cat];
+    const op = getNodeOpacity(n);
+    const isSel = n.id === selectedId;
+    const isConn = selectedId && !isSel && EDGES.some(e =>
+      (e.s===selectedId && e.t===n.id)||(e.t===selectedId && e.s===n.id));
+
+    const g = nodeG.append('g')
+      .attr('transform', `translate(${n.x},${n.y})`)
+      .attr('opacity', op)
+      .attr('class','node-group')
+      .style('cursor', nodeVisible(n) ? 'pointer' : 'default');
+
+    // Scope dimming ring for out-of-scope
+    if (n.scope === 'out' && n.cat !== 'risk') {
+      g.append('circle').attr('r', n.r + 8)
+        .attr('fill','none')
+        .attr('stroke','rgba(0,0,0,0.08)')
+        .attr('stroke-width',1)
+        .attr('stroke-dasharray','3,3');
+    }
+
+    // Pulse for core nodes
+    if ((n.id==='pratt-oea'||n.id==='student') && op > 0.5 && !isSel) {
+      g.append('circle').attr('r', n.r + 10)
+        .attr('fill','none')
+        .attr('stroke', cat.color)
+        .attr('stroke-width', 1.5)
+        .attr('opacity', 0.3)
+        .attr('class','pulse-ring');
+    }
+
+    // Selection / connection halos
+    if (isSel) {
+      g.append('circle').attr('r', n.r + 9)
+        .attr('fill', cat.color).attr('opacity', 0.15);
+      g.append('circle').attr('r', n.r + 6)
+        .attr('fill','none').attr('stroke', cat.color)
+        .attr('stroke-width', 2.5).attr('opacity', 0.9);
+    }
+    if (isConn) {
+      g.append('circle').attr('r', n.r + 5)
+        .attr('fill','none').attr('stroke', cat.color)
+        .attr('stroke-width', 1.5).attr('opacity', 0.45)
+        .attr('stroke-dasharray','4 3');
+    }
+
+    // Status ring for broken/strained
+    const maxEdgeSt = getWorstStatus(n.id);
+    if (maxEdgeSt === ST.broken) {
+      g.append('circle').attr('r', n.r + 4)
+        .attr('fill','none')
+        .attr('stroke','#C05050')
+        .attr('stroke-width', 2.5)
+        .attr('opacity', 0.55)
+        .attr('stroke-dasharray','5 3')
+        .attr('class','absent-ring');
+    } else if (maxEdgeSt === ST.strained) {
+      g.append('circle').attr('r', n.r + 4)
+        .attr('fill','none')
+        .attr('stroke','#E8A040')
+        .attr('stroke-width', 1.5)
+        .attr('opacity', 0.4);
+    }
+
+    // Risk dashed ring
+    if (n.cat === 'risk') {
+      g.append('circle').attr('r', n.r + 9)
+        .attr('fill','none')
+        .attr('stroke', cat.color).attr('stroke-width', 1.5)
+        .attr('opacity', 0.3)
+        .attr('stroke-dasharray','5 4');
+    }
+
+    // Drop shadow + main fill
+    g.append('circle').attr('r', n.r)
+      .attr('fill', cat.color)
+      .attr('filter', isSel ? 'url(#glow-sel)' : 'url(#shadow-soft)');
+
+    // Specular highlight
+    g.append('circle')
+      .attr('cx', -n.r*0.28).attr('cy', -n.r*0.28)
+      .attr('r', n.r*0.55)
+      .attr('fill','white').attr('opacity', 0.1);
+
+    // Channel icon for digital nodes
+    if (n.cat === 'channel') {
+      g.append('text')
+        .attr('y', -n.r + 14)
+        .attr('text-anchor','middle')
+        .attr('font-size', 11)
+        .text(n.id === 'terra-dotta' ? '⬡' : n.id === 'email-channel' ? '✉' : '◫');
+    }
+
+    // Node text
+    const words = n.label.split(' ');
+    let lines = [];
+    if (words.length <= 2) lines = [n.label];
+    else { const h = Math.ceil(words.length/2); lines = [words.slice(0,h).join(' '), words.slice(h).join(' ')]; }
+    const fs = Math.max(8, Math.min(12, n.r * 0.21));
+    const lh = fs * 1.35;
+    const hasSub = n.sub && n.r > 26;
+    const totalH = lines.length * lh;
+    let baseY = -totalH/2 + lh*0.42;
+    if (hasSub) baseY -= fs*0.6;
+
+    lines.forEach((line,i) => {
+      g.append('text')
+        .attr('y', baseY + i*lh)
+        .attr('text-anchor','middle')
+        .attr('font-family','Sora, sans-serif')
+        .attr('font-size', fs).attr('font-weight', 700)
+        .attr('fill', cat.text)
+        .text(line);
+    });
+
+    if (hasSub) {
+      g.append('text')
+        .attr('y', baseY + totalH + 2)
+        .attr('text-anchor','middle')
+        .attr('font-family','Sora, sans-serif')
+        .attr('font-size', fs*0.7).attr('font-weight',400)
+        .attr('fill', cat.text).attr('opacity', 0.6)
+        .text(n.sub.length > 18 ? n.sub.slice(0,17)+'…' : n.sub);
+    }
+
+    // Scope out indicator
+    if (n.scope === 'out') {
+      g.append('text')
+        .attr('y', n.r + 13)
+        .attr('text-anchor','middle')
+        .attr('font-family','Sora, sans-serif')
+        .attr('font-size', 8).attr('font-weight',500)
+        .attr('fill','var(--muted)')
+        .text('OUT OF SCOPE');
+    }
+
+    // Mouse events
+    const tt = document.getElementById('tt');
+    const ttN = document.getElementById('tt-name');
+    const ttS = document.getElementById('tt-sub');
+    const ttF = document.getElementById('tt-friction');
+
+    g.on('mouseenter', function(e) {
+      if (n.id === selectedId) return;
+      ttN.textContent = n.label;
+      ttS.textContent = n.sub || '';
+      const ws = getWorstStatus(n.id);
+      if (ws === ST.broken) {
+        ttF.textContent = '⚠ Broken relationship';
+        ttF.style.background = 'rgba(192,80,80,0.2)';
+        ttF.style.color = '#FF9090';
+      } else if (ws === ST.strained) {
+        ttF.textContent = '~ Strained relationship';
+        ttF.style.background = 'rgba(232,160,64,0.2)';
+        ttF.style.color = '#FFB060';
+      } else {
+        ttF.textContent = '';
+        ttF.style.background = '';
+      }
+      tt.classList.add('show');
+    })
+    .on('mousemove', function(ev) {
+      tt.style.left = (ev.clientX+14)+'px';
+      tt.style.top  = (ev.clientY-14)+'px';
+    })
+    .on('mouseleave', () => tt.classList.remove('show'))
+    .on('click', function(ev) {
+      ev.stopPropagation();
+      tt.classList.remove('show');
+      if (!nodeVisible(n)) return;
+      selectedId = (selectedId === n.id) ? null : n.id;
+      selectedId ? populateSidebar(n) : clearSidebar();
+      render();
+    });
+  });
+
+  // Click canvas → deselect
+  svg.on('click', function(ev) {
+    if (ev.target === this || ev.target.tagName === 'svg') {
+      selectedId = null;
+      clearSidebar();
+      render();
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+
+function getWorstStatus(nodeId) {
+  const statuses = EDGES
+    .filter(e => e.s===nodeId || e.t===nodeId)
+    .map(e => e.status);
+  if (statuses.includes(ST.broken)) return ST.broken;
+  if (statuses.includes(ST.strained)) return ST.strained;
+  return ST.healthy;
+}
+
+function countConnections(nodeId) {
+  const out = EDGES.filter(e => e.s===nodeId).length;
+  const inp = EDGES.filter(e => e.t===nodeId).length;
+  return { out, in: inp, total: out+inp };
+}
+
+// ═══════════════════════════════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════════════════════════════
+
+function clearSidebar() {
+  document.getElementById('sb-kicker').textContent = 'Ecosystem Explorer';
+  document.getElementById('sb-title').textContent = 'Select a node';
+  document.getElementById('sb-body').innerHTML = `
+    <div class="sb-empty">
+      <div class="sb-empty-icon">◎</div>
+      <div class="sb-empty-title">Stakeholder Intelligence</div>
+      <div class="sb-empty-desc">Click any node to explore detailed profiles, value flows, friction points, and design implications.</div>
+    </div>`;
+}
+
+function populateSidebar(n) {
+  const cat = CAT[n.cat];
+  const cc = countConnections(n.id);
+  const ws = getWorstStatus(n.id);
+
+  document.getElementById('sb-kicker').textContent = cat.label.toUpperCase();
+  document.getElementById('sb-title').textContent = n.label;
+
+  const outEdges = EDGES.filter(e => e.s===n.id && edgeVisible(e));
+  const inEdges  = EDGES.filter(e => e.t===n.id && edgeVisible(e));
+  const connIds  = new Set([...outEdges.map(e=>e.t),...inEdges.map(e=>e.s)]);
+
+  // Status tags
+  const scopeTag = n.scope==='in'
+    ? `<span class="status-tag scope-in">🎯 In Scope</span>`
+    : `<span class="status-tag scope-out">⊘ Out of Scope</span>`;
+  const wsTag = ws===ST.broken
+    ? `<span class="status-tag broken">⚠ Friction Present</span>`
+    : ws===ST.strained
+    ? `<span class="status-tag strained">~ Relationships Strained</span>`
+    : `<span class="status-tag healthy">✓ Functioning</span>`;
+  const phaseStr = (n.phases.includes('post-deposit') && n.phases.length < 5)
+    ? `<span class="status-tag strained">Active: Post-Deposit</span>` : '';
+
+  let html = `<div class="sb-ani">`;
+
+  // Badge + status
+  html += `<div class="sb-section">
+    <div class="node-badge" style="background:${cat.color}22;color:${cat.color};border:1.5px solid ${cat.color}44;">
+      <span style="width:7px;height:7px;border-radius:50%;background:${cat.color};display:inline-block;flex-shrink:0;"></span>
+      ${cat.label}
+    </div>
+    <p class="sb-desc">${n.desc}</p>
+    <div class="status-row">${wsTag}${scopeTag}${phaseStr}</div>
+  </div>`;
+
+  // Power / Interest / Emotional Load
+  html += `<div class="sb-section">
+    <div class="sb-sec-head">Stakeholder Profile</div>
+    <div class="influence-bar">
+      ${infRow('Power / Control', n.power, cat.color)}
+      ${infRow('Interest / Stakes', n.interest, cat.color)}
+      ${infRow('Emotional Load', n.emotionalLoad, cat.color)}
+      ${infRow('Connections', Math.round(cc.total/1.2*10), cat.color, cc.total)}
+    </div>
+  </div>`;
+
+  // Goals
+  if (n.goals?.length) {
+    html += `<div class="sb-section">
+      <div class="sb-sec-head">Goals & Motivations <span class="sb-sec-count">${n.goals.length}</span></div>
+      <div class="goal-list">`;
+    n.goals.forEach(g => {
+      html += `<div class="goal-item">
+        <div class="goal-bullet" style="background:${cat.color}"></div>
+        <span>${g}</span>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // Pain points
+  if (n.painPoints?.length) {
+    html += `<div class="sb-section">
+      <div class="sb-sec-head" style="color:var(--broken)">⚠ Friction & Pain Points <span class="sb-sec-count">${n.painPoints.length}</span></div>`;
+    n.painPoints.forEach(pp => {
+      html += `<div class="pain-card">
+        <div class="pain-head">⬤ ${pp.head}</div>
+        ${pp.body}
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Communication channels
+  if (n.channels?.length) {
+    html += `<div class="sb-section">
+      <div class="sb-sec-head">Communication Channels</div>
+      <div class="channel-wrap">`;
+    const chColors = {
+      'Terra Dotta':{ bg:'rgba(58,156,200,0.1)',c:'#2A7AA0' },
+      'Email':       { bg:'rgba(192,80,80,0.1)', c:'#A03030' },
+      'Canvas':      { bg:'rgba(90,184,112,0.1)',c:'#3A7A52' },
+      'In-person':   { bg:'rgba(122,140,110,0.1)',c:'#5A7A4A' },
+      'Phone':       { bg:'rgba(124,111,205,0.1)',c:'#5A50A0' },
+      'PDF attachments':{ bg:'rgba(192,80,80,0.12)',c:'#A03030' },
+    };
+    n.channels.forEach(ch => {
+      const cc2 = chColors[ch] || { bg:'rgba(0,0,0,0.06)',c:'var(--muted)' };
+      html += `<span class="channel-pill" style="background:${cc2.bg};color:${cc2.c};">${ch}</span>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // Interventions
+  if (n.interventions?.length) {
+    html += `<div class="sb-section">
+      <div class="sb-sec-head" style="color:#2E7A46">💡 Intervention Opportunities</div>`;
+    n.interventions.forEach(iv => {
+      html += `<div class="intervention-card">
+        <div class="int-head">→ ${iv.split(':')[0]}</div>
+        <div class="int-body">${iv.includes(':') ? iv.split(':').slice(1).join(':') : ''}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Value flows out
+  if (outEdges.length) {
+    html += `<div class="sb-section">
+      <div class="sb-sec-head">Outgoing Value Flows <span class="sb-sec-count">${outEdges.length}</span></div>
+      <div class="flow-list">`;
+    outEdges.forEach(e => {
+      const tn = nodeById[e.t];
+      if (!tn) return;
+      const fc = FLOW[e.flow]?.color || '#999';
+      html += flowCard(e, tn, '→', fc, cat.color);
+    });
+    html += `</div></div>`;
+  }
+
+  // Value flows in
+  if (inEdges.length) {
+    html += `<div class="sb-section">
+      <div class="sb-sec-head">Incoming Value Flows <span class="sb-sec-count">${inEdges.length}</span></div>
+      <div class="flow-list">`;
+    inEdges.forEach(e => {
+      const sn2 = nodeById[e.s];
+      if (!sn2) return;
+      const fc = FLOW[e.flow]?.color || '#999';
+      const scat = CAT[sn2.cat];
+      html += flowCard(e, sn2, '←', fc, scat?.color||'#999');
+    });
+    html += `</div></div>`;
+  }
+
+  // Connected nodes
+  if (connIds.size) {
+    html += `<div class="sb-section">
+      <div class="sb-sec-head">Connected Stakeholders <span class="sb-sec-count">${connIds.size}</span></div>
+      <div class="conn-wrap">`;
+    connIds.forEach(id => {
+      const cn = nodeById[id];
+      if (!cn) return;
+      const cc3 = CAT[cn.cat];
+      html += `<span class="conn-chip" data-id="${id}" style="border-color:${cc3.color}44;color:${cc3.color};">${cn.label}</span>`;
+    });
+    html += `</div></div>`;
+  }
+
+  html += `</div>`;
+
+  document.getElementById('sb-body').innerHTML = html;
+
+  // Wire chip clicks
+  document.querySelectorAll('.conn-chip[data-id]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const id = chip.dataset.id;
+      const node = nodeById[id];
+      if (!node) return;
+      selectedId = id;
+      populateSidebar(node);
+      render();
+      panToNode(node);
+    });
+  });
+
+  // Wire flow item clicks
+  document.querySelectorAll('.flow-item[data-id]').forEach(item => {
+    item.addEventListener('click', () => {
+      const id = item.dataset.id;
+      const node = nodeById[id];
+      if (!node) return;
+      selectedId = id;
+      populateSidebar(node);
+      render();
+      panToNode(node);
+    });
+  });
+}
+
+function infRow(label, val, color, displayVal) {
+  const pct = Math.min(100, val);
+  return `<div class="inf-row">
+    <span class="inf-label">${label}</span>
+    <div class="inf-track">
+      <div class="inf-fill" style="width:${pct}%;background:${color};"></div>
+    </div>
+    <span class="inf-val">${displayVal !== undefined ? displayVal : val}</span>
+  </div>`;
+}
+
+function flowCard(edge, otherNode, dir, flowColor, nodeColor) {
+  const stC = edge.status===ST.broken ? 'broken' : edge.status===ST.strained ? 'strained' : 'healthy';
+  const stL = edge.status===ST.broken ? '✕ Broken' : edge.status===ST.strained ? '~ Strained' : '✓ Healthy';
+  const oCat = CAT[otherNode.cat];
+  return `<div class="flow-item" data-id="${otherNode.id}">
+    <div class="flow-type-dot" style="background:${flowColor};margin-top:4px;flex-shrink:0;"></div>
+    <div class="flow-content">
+      <div class="flow-direction">${FLOW[edge.flow]?.label||edge.flow} ${dir} ${otherNode.label}</div>
+      <div class="flow-label">${edge.label||'Connected'}</div>
+      ${edge.channel ? `<div class="flow-channel"><span style="width:6px;height:6px;border-radius:50%;background:${nodeColor};display:inline-block;"></span>${edge.channel}</div>` : ''}
+      ${edge.frictionNote ? `<div class="flow-friction ${stC}">${stL}: ${edge.frictionNote}</div>` : `<div class="flow-friction ${stC}">${stL}</div>`}
+    </div>
+  </div>`;
+}
+
+function panToNode(node) {
+  const wrap = document.getElementById('cvs');
+  const W = wrap.clientWidth, H = wrap.clientHeight;
+  const k = xform.k;
+  svg.transition().duration(500).ease(d3.easeCubicInOut)
+    .call(zoom.transform, d3.zoomIdentity
+      .translate(W/2 - k*node.x, H/2 - k*node.y)
+      .scale(k));
+}
+
+// ═══════════════════════════════════════════════════════════
+// CONTROLS
+// ═══════════════════════════════════════════════════════════
+
+document.getElementById('zi').onclick = () => svg.transition().duration(260).call(zoom.scaleBy, 1.3);
+document.getElementById('zo').onclick = () => svg.transition().duration(260).call(zoom.scaleBy, 0.77);
+document.getElementById('zf').onclick = () => fitView();
+
+document.getElementById('toggle-sb').onclick = function() {
+  document.getElementById('sidebar').classList.toggle('closed');
+  this.classList.toggle('active');
+};
+
+// Phase filter
+document.querySelectorAll('.phase-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    activePhase = btn.dataset.phase;
+    document.querySelectorAll('.phase-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedId = null; clearSidebar();
+    // Update floating label
+    const pl = document.getElementById('phase-label');
+    const pld = document.getElementById('pl-dot');
+    const plt = document.getElementById('pl-text');
+    if (activePhase !== 'all') {
+      const ph = PHASES[activePhase];
+      pld.style.background = ph.color;
+      plt.textContent = ph.label;
+      pl.classList.add('show');
+    } else {
+      pl.classList.remove('show');
+    }
+    render();
+    requestAnimationFrame(() => fitView());
+  });
+});
+
+// View mode
+document.querySelectorAll('.vbtn[data-view]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    activeView = btn.dataset.view;
+    document.querySelectorAll('.vbtn[data-view]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  });
+});
+
+// Legend rows
+document.querySelectorAll('.leg-row[data-cat]').forEach(row => {
+  row.addEventListener('click', () => {
+    // Highlight all nodes of this category
+    selectedId = null; clearSidebar();
+    const cat = row.dataset.cat;
+    // Temporarily filter by cat
+    const prevSearch = searchQ;
+    searchQ = '';
+    // Just highlight — use existing logic
+    render();
+    searchQ = prevSearch;
+  });
+});
+
+// Search
+document.getElementById('search').addEventListener('input', e => {
+  searchQ = e.target.value.toLowerCase().trim();
+  selectedId = null; clearSidebar();
+  render();
+});
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+
+window.addEventListener('resize', () => render());
+
+render();
+requestAnimationFrame(() => requestAnimationFrame(() => fitView()));
+
+// Pulse animation via CSS
+const style = document.createElement('style');
+style.textContent = `
+@keyframes pulse-ring-anim {
+  0%  { transform: scale(1);   opacity: 0.4; }
+  50% { transform: scale(1.12); opacity: 0.15; }
+  100%{ transform: scale(1);   opacity: 0.4; }
+}
+.pulse-ring { animation: pulse-ring-anim 3s ease-in-out infinite; }
+`;
+document.head.appendChild(style);
+</script>
+</body>
+</html>
