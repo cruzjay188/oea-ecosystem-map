@@ -4,318 +4,213 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Service Ecosystem Map · Pratt OEA</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Lora:ital,wght@0,500;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <style>
 :root {
-  --ink:       #141418;
-  --ink2:      #3A3A46;
-  --muted:     #8A8A9A;
-  --border:    rgba(0,0,0,0.08);
-  --bg:        #F1EFE9;
-  --surface:   #FFFFFF;
-  --glass:     rgba(255,255,255,0.9);
-  --oea:       #D4A843;
-  --admin:     #7C6FCD;
-  --channel:   #3A9CC8;
-  --partner:   #7A8C6E;
-  --financial: #C4785A;
-  --student:   #C4956A;
-  --risk:      #C05050;
-  --flow-info:      #4A9EC4;
-  --flow-financial: #E8A040;
-  --flow-emotional: #C46090;
-  --flow-authority: #7C6FCD;
-  --flow-task:      #6EB88A;
-  --broken:  #E05050;
-  --strained:#E8A040;
-  --healthy: #5AB870;
+  --ink:     #1A1A2E;
+  --ink2:    #3A3A5A;
+  --muted:   #8A8AAA;
+  --border:  rgba(0,0,0,0.09);
+  --bg:      #FFFFFF;
+  --surface: #FFFFFF;
   --sidebar-w: 340px;
+
+  /* Node fill colors — matching original PNG */
+  --c-oea:      #EFE534;   /* bright yellow */
+  --c-admin:    #EAE6FA;   /* lavender */
+  --c-channel:  #A8D8F4;   /* light blue */
+  --c-partner:  #7A6E26;   /* dark olive */
+  --c-support:  #52B86A;   /* medium green — financial & academic */
+  --c-student:  #CBB186;   /* warm beige */
+  --c-primary:  #74C84E;   /* bright green — outbound student */
+
+  /* Status */
+  --broken:  #D93030;
+  --strained:#D48020;
+  --healthy: #48A860;
+
+  /* Purple label pill */
+  --pill-bg:  #EDE8FA;
+  --pill-txt: #5040A0;
+  --pill-bdr: #9C88D8;
 }
+
 *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
 html,body { height:100%; overflow:hidden; }
-body { background:var(--bg); color:var(--ink); font-family:'Sora',sans-serif; font-size:13px; display:flex; flex-direction:column; }
+body { background:#F5F4F0; color:var(--ink); font-family:'Inter',sans-serif; font-size:13px; display:flex; flex-direction:column; }
 
-/* ── HEADER: two rows ─────────────────────────────── */
-#header {
-  display: flex; flex-direction: column;
-  flex-shrink: 0;
-  z-index: 400;
-  box-shadow: 0 2px 18px rgba(0,0,0,0.10);
-}
+/* ══ HEADER ══════════════════════════════════════════════ */
+#header { display:flex; flex-direction:column; flex-shrink:0; z-index:400; box-shadow:0 2px 20px rgba(0,0,0,0.12); }
 
-/* Row 1 — TITLE (dark, prominent) */
+/* Row 1 — dark title band */
 #title-row {
-  background: var(--ink);
-  display: flex; align-items: center;
-  padding: 11px 20px;
-  gap: 0;
-  border-bottom: 2px solid var(--oea);
+  background: #1A1A2E;
+  display:flex; align-items:center; padding:10px 20px; gap:0;
+  border-bottom: 2px solid #EFE534;
 }
 .logo-badge {
-  width: 32px; height: 32px; border-radius: 7px;
-  background: var(--oea);
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Lora', serif; font-size: 14px; font-weight: 700;
-  color: var(--ink); flex-shrink: 0; margin-right: 14px;
+  width:30px; height:30px; border-radius:7px; background:#EFE534;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Lora',serif; font-size:13px; font-weight:700; color:#1A1A2E;
+  flex-shrink:0; margin-right:13px;
 }
 .title-group { flex:1; min-width:0; }
 .title-main {
-  font-family: 'Lora', serif;
-  font-size: 17px; font-weight: 700;
-  letter-spacing: -0.025em; line-height: 1.15;
-  color: #FFFFFF;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-family:'Lora',serif; font-size:17px; font-weight:700;
+  letter-spacing:-0.02em; color:#FFF; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis;
 }
-.title-main em { font-style: italic; color: var(--oea); }
-.title-sub {
-  font-size: 10px; color: rgba(255,255,255,0.42);
-  margin-top: 2px; white-space: nowrap;
-  overflow: hidden; text-overflow: ellipsis;
-  letter-spacing: 0.01em;
-}
-.title-divider { width:1px; height:30px; background:rgba(255,255,255,0.12); margin:0 18px; flex-shrink:0; }
-.title-stats { display:flex; gap:8px; flex-shrink:0; }
-.ts-chip {
-  display: flex; flex-direction: column; align-items: flex-start;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.13);
-  border-radius: 8px; padding: 5px 11px;
-}
+.title-main em { font-style:italic; color:#EFE534; }
+.title-sub { font-size:10px; color:rgba(255,255,255,0.4); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.title-div { width:1px; height:28px; background:rgba(255,255,255,0.12); margin:0 16px; flex-shrink:0; }
+.title-stats { display:flex; gap:7px; flex-shrink:0; }
+.ts-chip { display:flex; flex-direction:column; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.13); border-radius:7px; padding:5px 11px; }
 .ts-chip .tv { font-family:'Lora',serif; font-size:13px; font-weight:700; color:#FFF; line-height:1; }
-.ts-chip .tl { font-size:8px; font-weight:700; text-transform:uppercase; letter-spacing:0.09em; color:rgba(255,255,255,0.4); margin-top:2px; }
+.ts-chip .tl { font-size:8px; font-weight:600; text-transform:uppercase; letter-spacing:0.09em; color:rgba(255,255,255,0.38); margin-top:2px; }
 .ts-chip.alert .tv { color:#FF9090; }
 
-/* Row 2 — CONTROLS (light) */
+/* Row 2 — controls */
 #controls-row {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center;
-  padding: 0 20px; height: 42px; gap: 10px;
+  background:#FFF; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; padding:0 20px; height:40px; gap:10px;
 }
-.phase-bar {
-  display: flex; align-items: center; gap: 2px;
-  background: var(--bg); border: 1px solid var(--border);
-  border-radius: 20px; padding: 3px 4px; flex-shrink:0;
-}
-.phase-pill {
-  padding: 3px 10px; border-radius: 14px;
-  font-size: 10.5px; font-weight: 500;
-  cursor: pointer; color: var(--muted);
-  border: none; background: transparent;
-  font-family: 'Sora', sans-serif; white-space: nowrap;
-  transition: all .15s;
-}
+.phase-bar { display:flex; align-items:center; gap:2px; background:#F3F2F8; border:1px solid var(--border); border-radius:20px; padding:3px 4px; flex-shrink:0; }
+.phase-pill { padding:3px 10px; border-radius:14px; font-size:10px; font-weight:500; cursor:pointer; color:var(--muted); border:none; background:transparent; font-family:'Inter',sans-serif; white-space:nowrap; transition:all .14s; }
 .phase-pill:hover { color:var(--ink); }
 .phase-pill.active { background:var(--ink); color:#FFF; font-weight:600; }
-.phase-pill.crit.active { background: var(--risk); }
+.phase-pill.crit.active { background:var(--broken); }
 .ctrl-div { width:1px; height:20px; background:var(--border); flex-shrink:0; }
 .view-set { display:flex; gap:3px; flex-shrink:0; }
-.vbtn {
-  height:28px; padding:0 10px; border-radius:6px;
-  border: 1px solid var(--border); background: transparent;
-  font-family:'Sora',sans-serif; font-size:10.5px; font-weight:500;
-  color:var(--muted); cursor:pointer; white-space:nowrap;
-  transition: all .14s;
-}
-.vbtn:hover { color:var(--ink); border-color:rgba(0,0,0,0.16); }
+.vbtn { height:27px; padding:0 10px; border-radius:6px; border:1px solid var(--border); background:transparent; font-family:'Inter',sans-serif; font-size:10px; font-weight:500; color:var(--muted); cursor:pointer; white-space:nowrap; transition:all .13s; }
+.vbtn:hover { color:var(--ink); border-color:rgba(0,0,0,0.18); }
 .vbtn.active { background:var(--ink); color:#FFF; border-color:var(--ink); }
-.search-box {
-  display:flex; align-items:center; gap:6px;
-  background:var(--bg); border:1px solid var(--border);
-  border-radius:7px; padding:5px 10px; width:180px;
-  transition: border-color .14s;
-}
+.search-box { display:flex; align-items:center; gap:6px; background:#F5F4F8; border:1px solid var(--border); border-radius:7px; padding:5px 10px; width:175px; transition:border-color .13s; }
 .search-box:focus-within { border-color:var(--ink); }
-.search-box input { border:none; background:none; outline:none; font-family:'Sora',sans-serif; font-size:11px; color:var(--ink); width:100%; }
+.search-box input { border:none; background:none; outline:none; font-family:'Inter',sans-serif; font-size:10.5px; color:var(--ink); width:100%; }
 .search-box input::placeholder { color:var(--muted); }
 .panel-btn { margin-left:auto; }
 
-/* ── MAIN ─────────────────────────────────────────── */
+/* ══ MAIN ════════════════════════════════════════════════ */
 #main { flex:1; display:flex; overflow:hidden; }
-#cvs { flex:1; position:relative; overflow:hidden; }
+#cvs { flex:1; position:relative; overflow:hidden; background:#FFFFFF; }
 svg#g { width:100%; height:100%; cursor:grab; }
 svg#g.dragging { cursor:grabbing; }
 
-/* ── FLOATING UI ──────────────────────────────────── */
-/* Scope tags — top left */
-#scope-strip {
-  position:absolute; top:14px; left:16px; z-index:200;
-  display:flex; flex-direction:column; gap:5px;
-}
-.scope-tag {
-  padding:4px 10px; border-radius:20px;
-  font-size:9.5px; font-weight:600; letter-spacing:0.04em;
-  backdrop-filter: blur(8px);
-}
-.scope-in  { background:rgba(90,184,112,0.14); color:#3A8A52; border:1px solid rgba(90,184,112,0.28); }
-.scope-out { background:rgba(138,138,154,0.10); color:var(--muted); border:1px solid var(--border); }
+/* ══ FLOATING UI ══════════════════════════════════════════ */
+/* Scope strip top-left */
+#scope-strip { position:absolute; top:14px; left:16px; z-index:200; display:flex; flex-direction:column; gap:5px; }
+.scope-tag { padding:4px 10px; border-radius:20px; font-size:9px; font-weight:600; letter-spacing:0.04em; }
+.scope-in  { background:rgba(72,168,96,0.12); color:#2E7A46; border:1px solid rgba(72,168,96,0.3); }
+.scope-out { background:rgba(0,0,0,0.04); color:var(--muted); border:1px solid var(--border); }
 
 /* Phase active badge — top right */
-#phase-badge {
-  position:absolute; top:14px; right:16px; z-index:200;
-  display:flex; align-items:center; gap:7px;
-  background:var(--glass); backdrop-filter:blur(14px);
-  border:1px solid var(--border); border-radius:20px;
-  padding:5px 13px 5px 9px;
-  font-size:11px; font-weight:600;
-  box-shadow:0 2px 10px rgba(0,0,0,0.06);
-  opacity:0; transition:opacity .25s; pointer-events:none;
-}
+#phase-badge { position:absolute; top:14px; right:16px; z-index:200; display:flex; align-items:center; gap:7px; background:#FFF; border:1px solid var(--border); border-radius:20px; padding:5px 13px 5px 9px; font-size:11px; font-weight:600; box-shadow:0 1px 6px rgba(0,0,0,0.07); opacity:0; transition:opacity .25s; pointer-events:none; }
 #phase-badge.visible { opacity:1; }
 #phase-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
 
-/* Legend — bottom left */
-#legend {
-  position:absolute; bottom:16px; left:16px; z-index:200;
-  width:196px;
-  background:var(--glass); backdrop-filter:blur(18px);
-  border:1px solid var(--border); border-radius:12px;
-  padding:13px 14px;
-  box-shadow:0 4px 20px rgba(0,0,0,0.08);
-}
-.leg-sec { margin-bottom:10px; }
+/* Legend */
+#legend { position:absolute; bottom:16px; left:16px; z-index:200; width:210px; background:#FFF; border:1px solid var(--border); border-radius:10px; padding:13px 14px; box-shadow:0 2px 12px rgba(0,0,0,0.07); }
+.leg-sec { margin-bottom:11px; }
 .leg-sec:last-child { margin-bottom:0; }
-.leg-head { font-size:9px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
-.leg-row { display:flex; align-items:center; gap:7px; padding:2px 4px; border-radius:5px; margin-bottom:1px; cursor:pointer; transition:background .13s; }
+.leg-head { font-size:8.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+.leg-row { display:flex; align-items:center; gap:8px; padding:2px 4px; margin-bottom:2px; border-radius:5px; cursor:pointer; transition:background .12s; }
 .leg-row:hover { background:rgba(0,0,0,0.04); }
-.leg-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-.leg-line { width:20px; height:3px; border-radius:2px; flex-shrink:0; }
-.leg-line.dashed { background:none !important; border-top:2.5px dashed var(--risk); height:0; margin-top:1px; }
+.leg-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.leg-dot.risk-dot { background:#FFF !important; border:2px dashed var(--broken); }
+.leg-line { width:22px; height:2px; border-radius:2px; flex-shrink:0; }
+.leg-line.dashed-line { background:none !important; border-top:2px dashed var(--broken); height:0; margin-top:1px; }
 .leg-lbl { font-size:10px; color:var(--ink2); }
 
-/* Zoom — bottom right */
-#zoom-wrap {
-  position:absolute; bottom:16px; right:16px; z-index:200;
-  display:flex; flex-direction:column; gap:4px;
-}
-.zbtn {
-  width:32px; height:32px; border-radius:7px;
-  border:1px solid var(--border); background:var(--glass);
-  backdrop-filter:blur(10px); color:var(--ink);
-  font-size:15px; font-weight:300; cursor:pointer;
-  display:flex; align-items:center; justify-content:center;
-  box-shadow:0 2px 8px rgba(0,0,0,0.07); transition:all .13s;
-}
+/* Zoom */
+#zoom-wrap { position:absolute; bottom:16px; right:16px; z-index:200; display:flex; flex-direction:column; gap:4px; }
+.zbtn { width:32px; height:32px; border-radius:7px; border:1px solid var(--border); background:#FFF; color:var(--ink); font-size:15px; font-weight:300; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 5px rgba(0,0,0,0.07); transition:all .12s; }
 .zbtn:hover { background:var(--ink); color:#FFF; border-color:var(--ink); }
 
-/* ── SIDEBAR ──────────────────────────────────────── */
-#sidebar {
-  width:var(--sidebar-w); background:var(--surface);
-  border-left:1px solid var(--border);
-  display:flex; flex-direction:column; overflow:hidden;
-  transition:width .26s cubic-bezier(.4,0,.2,1);
-  flex-shrink:0; box-shadow:-2px 0 16px rgba(0,0,0,0.05);
-}
+/* ══ SIDEBAR ════════════════════════════════════════════ */
+#sidebar { width:var(--sidebar-w); background:#FFF; border-left:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; transition:width .26s cubic-bezier(.4,0,.2,1); flex-shrink:0; }
 #sidebar.closed { width:0; }
 .sb-head { padding:16px 18px 13px; border-bottom:1px solid var(--border); flex-shrink:0; }
-.sb-kicker { font-size:9px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
+.sb-kicker { font-size:8.5px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
 .sb-title { font-family:'Lora',serif; font-size:15px; font-weight:700; color:var(--ink); line-height:1.25; }
 .sb-body { flex:1; overflow-y:auto; }
 .sb-body::-webkit-scrollbar { width:3px; }
-.sb-body::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.1); border-radius:2px; }
-
+.sb-body::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.09); border-radius:2px; }
 .sb-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; padding:28px 22px; text-align:center; gap:12px; }
-.sb-empty-icon { font-size:2.4rem; opacity:0.18; }
+.sb-empty-icon { font-size:2.4rem; opacity:0.15; }
 .sb-empty-title { font-family:'Lora',serif; font-size:14px; color:var(--ink2); }
-.sb-empty-desc { font-size:11px; color:var(--muted); line-height:1.65; }
-
-/* Sidebar sections */
+.sb-empty-desc { font-size:11px; color:var(--muted); line-height:1.7; }
 .sbs { padding:14px 18px; border-bottom:1px solid var(--border); }
 .sbs:last-child { border-bottom:none; }
-.sbs-head {
-  font-size:9px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase;
-  color:var(--muted); margin-bottom:9px;
-  display:flex; align-items:center; justify-content:space-between;
-}
-.sbs-count { background:var(--bg); border-radius:9px; padding:1px 7px; font-size:9px; font-weight:600; color:var(--muted); }
-.node-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; font-size:9.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:9px; }
-.sb-desc { font-size:11.5px; line-height:1.7; color:var(--ink2); }
+.sbs-head { font-size:8.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:9px; display:flex; align-items:center; justify-content:space-between; }
+.sbs-count { background:#F5F4F8; border-radius:9px; padding:1px 7px; font-size:8.5px; font-weight:600; color:var(--muted); }
+.node-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; font-size:9px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:9px; }
+.sb-desc { font-size:11.5px; line-height:1.72; color:var(--ink2); }
 .status-row { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
-.stag { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:20px; font-size:9.5px; font-weight:600; border:1.5px solid; }
-.stag.broken   { color:var(--broken);  border-color:rgba(192,80,80,0.3);  background:rgba(192,80,80,0.06); }
-.stag.strained { color:var(--strained);border-color:rgba(232,160,64,0.3); background:rgba(232,160,64,0.06); }
-.stag.healthy  { color:var(--healthy); border-color:rgba(90,184,112,0.3); background:rgba(90,184,112,0.06); }
-.stag.inscope  { color:#3A8A52; border-color:rgba(90,184,112,0.3); background:rgba(90,184,112,0.06); }
-.stag.outscope { color:var(--muted); border-color:var(--border); background:var(--bg); }
-
+.stag { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:20px; font-size:9px; font-weight:700; border:1.5px solid; }
+.stag.broken   { color:var(--broken);  border-color:rgba(217,48,48,0.3);  background:rgba(217,48,48,0.06); }
+.stag.strained { color:var(--strained);border-color:rgba(212,128,32,0.3); background:rgba(212,128,32,0.06); }
+.stag.healthy  { color:var(--healthy); border-color:rgba(72,168,96,0.3);  background:rgba(72,168,96,0.06); }
+.stag.inscope  { color:#2E7A46; border-color:rgba(72,168,96,0.3); background:rgba(72,168,96,0.06); }
+.stag.outscope { color:var(--muted); border-color:var(--border); background:#F5F4F8; }
 .inf-bar { display:flex; flex-direction:column; gap:7px; margin-top:8px; }
 .inf-row { display:flex; align-items:center; gap:8px; }
-.inf-lbl { width:88px; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); flex-shrink:0; }
-.inf-track { flex:1; height:4px; background:var(--bg); border-radius:3px; overflow:hidden; min-width:40px; }
+.inf-lbl { width:88px; font-size:8.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); flex-shrink:0; }
+.inf-track { flex:1; height:4px; background:#F0EFF8; border-radius:3px; overflow:hidden; }
 .inf-fill { height:100%; border-radius:3px; transition:width .45s .1s; }
 .inf-val { width:26px; text-align:right; font-size:10px; font-weight:700; color:var(--ink); flex-shrink:0; }
-
 .goal-list { display:flex; flex-direction:column; gap:6px; }
 .goal-item { display:flex; align-items:flex-start; gap:8px; font-size:11px; line-height:1.55; color:var(--ink2); }
 .goal-dot { width:5px; height:5px; border-radius:50%; margin-top:5px; flex-shrink:0; }
-
-.pain-card { background:rgba(192,80,80,0.05); border:1px solid rgba(192,80,80,0.18); border-radius:8px; padding:10px 12px; margin-bottom:7px; font-size:11px; line-height:1.6; color:var(--ink2); word-break:break-word; }
-.pain-head { font-weight:700; color:var(--broken); font-size:10.5px; margin-bottom:4px; }
-
-.int-card { background:rgba(90,184,112,0.06); border:1px solid rgba(90,184,112,0.22); border-radius:8px; padding:10px 12px; margin-bottom:7px; word-break:break-word; }
+.pain-card { background:rgba(217,48,48,0.05); border:1px solid rgba(217,48,48,0.16); border-radius:8px; padding:10px 12px; margin-bottom:7px; font-size:11px; line-height:1.6; color:var(--ink2); word-break:break-word; }
+.pain-head { font-weight:700; color:var(--broken); font-size:10px; margin-bottom:4px; }
+.int-card { background:rgba(72,168,96,0.06); border:1px solid rgba(72,168,96,0.2); border-radius:8px; padding:10px 12px; margin-bottom:7px; word-break:break-word; }
 .int-head { font-weight:700; font-size:11px; color:#2E7A46; margin-bottom:3px; }
 .int-body { font-size:10.5px; color:var(--ink2); line-height:1.55; }
-
 .ch-wrap { display:flex; flex-wrap:wrap; gap:5px; }
-.ch-pill { padding:4px 9px; border-radius:6px; font-size:9.5px; font-weight:600; display:flex; align-items:center; gap:4px; white-space:nowrap; }
-
+.ch-pill { padding:4px 9px; border-radius:6px; font-size:9px; font-weight:600; white-space:nowrap; }
 .flow-list { display:flex; flex-direction:column; gap:6px; }
-.flow-card {
-  display:flex; gap:9px; background:var(--bg);
-  border-radius:8px; padding:9px 11px; cursor:pointer;
-  border:1px solid transparent; transition:all .13s; min-width:0;
-}
-.flow-card:hover { border-color:var(--border); background:white; }
+.flow-card { display:flex; gap:9px; background:#F8F7FC; border-radius:8px; padding:9px 11px; cursor:pointer; border:1px solid transparent; transition:all .12s; min-width:0; }
+.flow-card:hover { border-color:var(--border); background:#FFF; }
 .flow-dot { width:7px; height:7px; border-radius:50%; margin-top:5px; flex-shrink:0; }
 .flow-inner { flex:1; min-width:0; overflow:hidden; }
-.flow-dir { font-size:9px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; color:var(--muted); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.flow-dir { font-size:8.5px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; color:var(--muted); margin-bottom:2px; }
 .flow-lbl { font-size:11px; color:var(--ink); line-height:1.4; font-weight:500; word-break:break-word; }
-.flow-ch  { margin-top:3px; font-size:9.5px; color:var(--muted); display:flex; align-items:center; gap:3px; }
-.flow-status { margin-top:4px; padding:2px 7px; border-radius:4px; font-size:9px; font-weight:700; display:inline-block; word-break:break-word; line-height:1.5; }
-.flow-status.broken   { background:rgba(192,80,80,0.09);  color:var(--broken); }
-.flow-status.strained { background:rgba(232,160,64,0.09); color:var(--strained); }
-.flow-status.healthy  { background:rgba(90,184,112,0.09); color:var(--healthy); }
-
+.flow-ch  { margin-top:3px; font-size:9px; color:var(--muted); display:flex; align-items:center; gap:3px; }
+.flow-status { margin-top:4px; padding:2px 7px; border-radius:4px; font-size:8.5px; font-weight:700; display:inline-block; word-break:break-word; line-height:1.5; }
+.flow-status.broken   { background:rgba(217,48,48,0.08);  color:var(--broken); }
+.flow-status.strained { background:rgba(212,128,32,0.08); color:var(--strained); }
+.flow-status.healthy  { background:rgba(72,168,96,0.08);  color:var(--healthy); }
 .conn-wrap { display:flex; flex-wrap:wrap; gap:5px; }
-.conn-chip { padding:4px 10px; border-radius:20px; font-size:10px; font-weight:500; cursor:pointer; border:1.5px solid; background:white; transition:all .13s; }
-.conn-chip:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,0.09); }
+.conn-chip { padding:4px 10px; border-radius:20px; font-size:10px; font-weight:500; cursor:pointer; border:1.5px solid; background:#FFF; transition:all .12s; }
+.conn-chip:hover { transform:translateY(-1px); box-shadow:0 3px 10px rgba(0,0,0,0.09); }
 
-/* ── TOOLTIP ──────────────────────────────────────── */
-#tt {
-  position:fixed; z-index:999; pointer-events:none;
-  opacity:0; transition:opacity .1s;
-  background:rgba(18,18,22,0.94); backdrop-filter:blur(10px);
-  color:#EEE; padding:8px 12px; border-radius:8px;
-  max-width:210px; font-size:11.5px; line-height:1.4;
-  box-shadow:0 8px 24px rgba(0,0,0,0.22);
-}
+/* ══ TOOLTIP ════════════════════════════════════════════ */
+#tt { position:fixed; z-index:999; pointer-events:none; opacity:0; transition:opacity .1s; background:rgba(20,20,35,0.92); color:#EEE; padding:8px 12px; border-radius:8px; max-width:200px; font-size:11px; line-height:1.4; box-shadow:0 6px 20px rgba(0,0,0,0.2); }
 #tt.show { opacity:1; }
-.tt-name { font-weight:700; }
-.tt-sub  { font-size:10px; opacity:0.55; margin-top:2px; }
-.tt-st   { margin-top:5px; font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:4px; display:inline-block; }
+.tt-name { font-weight:700; font-size:12px; }
+.tt-sub  { font-size:9.5px; opacity:0.5; margin-top:1px; }
+.tt-st   { margin-top:5px; font-size:9px; font-weight:700; padding:2px 7px; border-radius:4px; display:inline-block; }
 
-@keyframes dash-anim { to { stroke-dashoffset:-20; } }
-@keyframes pulse-anim { 0%,100%{opacity:.35;transform:scale(1)} 50%{opacity:.12;transform:scale(1.1)} }
-.pulse-ring { animation: pulse-anim 3s ease-in-out infinite; transform-origin:center; }
-.flow-anim  { animation: dash-anim 1.2s linear infinite; }
-@keyframes sb-in { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
-.sb-ani { animation: sb-in .2s ease forwards; }
+@keyframes dash-flow { to { stroke-dashoffset:-18; } }
+@keyframes pulse-ring { 0%,100%{opacity:.3;transform:scale(1)} 50%{opacity:.1;transform:scale(1.08)} }
+.pulse-el { animation:pulse-ring 3.2s ease-in-out infinite; transform-origin:center; }
+.dash-flow { animation:dash-flow 1.1s linear infinite; }
+@keyframes sb-in { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+.sb-ani { animation:sb-in .18s ease forwards; }
 </style>
 </head>
 <body>
 
 <!-- ══ HEADER ══════════════════════════════════════════ -->
 <div id="header">
-
-  <!-- Row 1: Title — what a hiring manager reads first -->
   <div id="title-row">
     <div class="logo-badge">P</div>
     <div class="title-group">
       <div class="title-main">Service Ecosystem Map &nbsp;·&nbsp; <em>Mitigating Student Withdrawals in Study Abroad</em></div>
       <div class="title-sub">Pratt Institute · Office of Education Abroad · Service Design · Jeffrey Delacruz, Ariel, Shreya · Nov–Dec 2025</div>
     </div>
-    <div class="title-divider"></div>
+    <div class="title-div"></div>
     <div class="title-stats">
       <div class="ts-chip alert"><span class="tv">39.28%</span><span class="tl">Withdrawal Rate</span></div>
       <div class="ts-chip"><span class="tv">26</span><span class="tl">Stakeholders</span></div>
@@ -323,8 +218,6 @@ svg#g.dragging { cursor:grabbing; }
       <div class="ts-chip"><span class="tv">Post-Deposit</span><span class="tl">Critical Phase</span></div>
     </div>
   </div>
-
-  <!-- Row 2: Controls -->
   <div id="controls-row">
     <div class="phase-bar">
       <button class="phase-pill active" data-phase="all">All Phases</button>
@@ -348,86 +241,72 @@ svg#g.dragging { cursor:grabbing; }
     </div>
     <button class="vbtn panel-btn" id="toggle-sb">⊟ Panel</button>
   </div>
-
 </div>
 
 <!-- ══ MAIN ════════════════════════════════════════════ -->
 <div id="main">
   <div id="cvs">
-
-    <!-- Scope tags -->
     <div id="scope-strip">
       <span class="scope-tag scope-in">🎯 In Scope: Post-Deposit Phase</span>
       <span class="scope-tag scope-out">⊘ Out of Scope: Terra Dotta · Visa Policy · Host Institutions</span>
     </div>
-
-    <!-- Phase badge (shown when phase filter active) -->
     <div id="phase-badge"><div id="phase-dot"></div><span id="phase-text"></span></div>
 
     <svg id="g">
       <defs>
-        <!-- Small, clean arrowheads for each flow type -->
-        <marker id="arr-info"       markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0.5 L0,5.5 L6,3 z" fill="#4A9EC4" opacity="0.8"/></marker>
-        <marker id="arr-financial"  markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0.5 L0,5.5 L6,3 z" fill="#E8A040" opacity="0.8"/></marker>
-        <marker id="arr-emotional"  markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0.5 L0,5.5 L6,3 z" fill="#C46090" opacity="0.8"/></marker>
-        <marker id="arr-authority"  markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0.5 L0,5.5 L6,3 z" fill="#7C6FCD" opacity="0.8"/></marker>
-        <marker id="arr-task"       markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0.5 L0,5.5 L6,3 z" fill="#6EB88A" opacity="0.8"/></marker>
-        <marker id="arr-risk"       markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0.5 L0,5.5 L6,3 z" fill="#C05050" opacity="0.8"/></marker>
-        <!-- Highlighted (selected) arrowheads — slightly larger -->
-        <marker id="arr-info-hi"      markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0.5 L0,6.5 L7,3.5 z" fill="#4A9EC4"/></marker>
-        <marker id="arr-financial-hi" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0.5 L0,6.5 L7,3.5 z" fill="#E8A040"/></marker>
-        <marker id="arr-emotional-hi" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0.5 L0,6.5 L7,3.5 z" fill="#C46090"/></marker>
-        <marker id="arr-authority-hi" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0.5 L0,6.5 L7,3.5 z" fill="#7C6FCD"/></marker>
-        <marker id="arr-task-hi"      markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0.5 L0,6.5 L7,3.5 z" fill="#6EB88A"/></marker>
-        <marker id="arr-risk-hi"      markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0.5 L0,6.5 L7,3.5 z" fill="#C05050"/></marker>
-        <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
-          <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="rgba(0,0,0,0.13)"/>
-        </filter>
-        <filter id="glow-sel" x="-60%" y="-60%" width="220%" height="220%">
-          <feGaussianBlur stdDeviation="9" result="b"/>
-          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
+        <!-- Arrowheads — small, clean -->
+        <marker id="arr-info"       markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0.5L0,5.5L6,3z" fill="#5090C0" opacity="0.7"/></marker>
+        <marker id="arr-financial"  markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0.5L0,5.5L6,3z" fill="#D48020" opacity="0.7"/></marker>
+        <marker id="arr-emotional"  markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0.5L0,5.5L6,3z" fill="#A04080" opacity="0.7"/></marker>
+        <marker id="arr-authority"  markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0.5L0,5.5L6,3z" fill="#5040A0" opacity="0.7"/></marker>
+        <marker id="arr-task"       markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0.5L0,5.5L6,3z" fill="#48A860" opacity="0.7"/></marker>
+        <marker id="arr-risk"       markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0.5L0,5.5L6,3z" fill="#D93030" opacity="0.8"/></marker>
+        <marker id="arr-info-hi"      markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto"><path d="M0,0.5L0,6.5L7,3.5z" fill="#2060A0"/></marker>
+        <marker id="arr-financial-hi" markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto"><path d="M0,0.5L0,6.5L7,3.5z" fill="#B06010"/></marker>
+        <marker id="arr-emotional-hi" markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto"><path d="M0,0.5L0,6.5L7,3.5z" fill="#802060"/></marker>
+        <marker id="arr-authority-hi" markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto"><path d="M0,0.5L0,6.5L7,3.5z" fill="#3030A0"/></marker>
+        <marker id="arr-task-hi"      markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto"><path d="M0,0.5L0,6.5L7,3.5z" fill="#308050"/></marker>
+        <marker id="arr-risk-hi"      markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto"><path d="M0,0.5L0,6.5L7,3.5z" fill="#B01010"/></marker>
       </defs>
       <g id="groot"></g>
     </svg>
 
-    <!-- Legend -->
+    <!-- Legend matching original PNG style -->
     <div id="legend">
       <div class="leg-sec">
         <div class="leg-head">Stakeholder Type</div>
-        <div class="leg-row"><div class="leg-dot" style="background:#D4A843"></div><span class="leg-lbl">OEA Units</span></div>
-        <div class="leg-row"><div class="leg-dot" style="background:#7C6FCD"></div><span class="leg-lbl">Administration</span></div>
-        <div class="leg-row"><div class="leg-dot" style="background:#3A9CC8"></div><span class="leg-lbl">Digital Channels</span></div>
-        <div class="leg-row"><div class="leg-dot" style="background:#7A8C6E"></div><span class="leg-lbl">Partner Institutions</span></div>
-        <div class="leg-row"><div class="leg-dot" style="background:#C4785A"></div><span class="leg-lbl">Financial & Academic</span></div>
-        <div class="leg-row"><div class="leg-dot" style="background:#C4956A"></div><span class="leg-lbl">Student Stakeholders</span></div>
-        <div class="leg-row"><div class="leg-dot" style="background:#C05050"></div><span class="leg-lbl">Risk Factors</span></div>
+        <div class="leg-row"><div class="leg-dot" style="background:#EFE534;border:1.5px solid #C8BC00"></div><span class="leg-lbl">OEA Units + Program Leadership</span></div>
+        <div class="leg-row"><div class="leg-dot" style="background:#74C84E;border:1.5px solid #50A030"></div><span class="leg-lbl">Primary Actor (Outbound Student)</span></div>
+        <div class="leg-row"><div class="leg-dot" style="background:#52B86A;border:1.5px solid #38984A"></div><span class="leg-lbl">Financial & Academic Support</span></div>
+        <div class="leg-row"><div class="leg-dot" style="background:#7A6E26;border:1.5px solid #584E10"></div><span class="leg-lbl">Partner Institutions</span></div>
+        <div class="leg-row"><div class="leg-dot" style="background:#CBB186;border:1.5px solid #A89060"></div><span class="leg-lbl">Student Stakeholders</span></div>
+        <div class="leg-row"><div class="leg-dot" style="background:#A8D8F4;border:1.5px solid #5090C0"></div><span class="leg-lbl">Digital Channels</span></div>
+        <div class="leg-row"><div class="leg-dot" style="background:#EAE6FA;border:1.5px solid #9080CC"></div><span class="leg-lbl">Administration</span></div>
+        <div class="leg-row"><div class="leg-dot risk-dot"></div><span class="leg-lbl">External Risk Factors</span></div>
       </div>
       <div class="leg-sec">
         <div class="leg-head">Flow Type</div>
-        <div class="leg-row"><div class="leg-line" style="background:#4A9EC4"></div><span class="leg-lbl">Information</span></div>
-        <div class="leg-row"><div class="leg-line" style="background:#E8A040"></div><span class="leg-lbl">Financial</span></div>
-        <div class="leg-row"><div class="leg-line" style="background:#C46090"></div><span class="leg-lbl">Emotional / Social</span></div>
-        <div class="leg-row"><div class="leg-line" style="background:#7C6FCD"></div><span class="leg-lbl">Authority / Decision</span></div>
-        <div class="leg-row"><div class="leg-line" style="background:#6EB88A"></div><span class="leg-lbl">Task / Coordination</span></div>
-        <div class="leg-row"><div class="leg-line dashed"></div><span class="leg-lbl">Risk Flow</span></div>
+        <div class="leg-row"><div class="leg-line" style="background:#5090C0"></div><span class="leg-lbl">Information</span></div>
+        <div class="leg-row"><div class="leg-line" style="background:#D48020"></div><span class="leg-lbl">Financial</span></div>
+        <div class="leg-row"><div class="leg-line" style="background:#A04080"></div><span class="leg-lbl">Emotional / Social</span></div>
+        <div class="leg-row"><div class="leg-line" style="background:#5040A0"></div><span class="leg-lbl">Authority / Decision</span></div>
+        <div class="leg-row"><div class="leg-line" style="background:#48A860"></div><span class="leg-lbl">Task / Coordination</span></div>
+        <div class="leg-row"><div class="leg-line dashed-line"></div><span class="leg-lbl">Risk Flow</span></div>
       </div>
       <div class="leg-sec">
         <div class="leg-head">Relationship Health</div>
-        <div class="leg-row"><div class="leg-dot" style="background:#E05050;box-shadow:0 0 0 2px rgba(192,80,80,0.22)"></div><span class="leg-lbl">Broken / Absent</span></div>
-        <div class="leg-row"><div class="leg-dot" style="background:#E8A040"></div><span class="leg-lbl">Strained</span></div>
-        <div class="leg-row"><div class="leg-dot" style="background:#5AB870"></div><span class="leg-lbl">Functioning</span></div>
+        <div class="leg-row"><div class="leg-dot" style="background:var(--broken)"></div><span class="leg-lbl">Broken — causes withdrawals</span></div>
+        <div class="leg-row"><div class="leg-dot" style="background:var(--strained)"></div><span class="leg-lbl">Strained — needs attention</span></div>
+        <div class="leg-row"><div class="leg-dot" style="background:var(--healthy)"></div><span class="leg-lbl">Functioning well</span></div>
       </div>
     </div>
 
-    <!-- Zoom -->
     <div id="zoom-wrap">
       <button class="zbtn" id="zi">+</button>
       <button class="zbtn" id="zo">−</button>
       <button class="zbtn" id="zf" title="Fit view">⊙</button>
     </div>
-
-  </div><!-- /cvs -->
+  </div>
 
   <!-- ══ SIDEBAR ══════════════════════════════════════ -->
   <div id="sidebar">
@@ -439,12 +318,11 @@ svg#g.dragging { cursor:grabbing; }
       <div class="sb-empty">
         <div class="sb-empty-icon">◎</div>
         <div class="sb-empty-title">Stakeholder Detail</div>
-        <div class="sb-empty-desc">Click any node to see goals, friction points, flow types, communication channels, and intervention opportunities.</div>
+        <div class="sb-empty-desc">Click any node to explore goals, friction points, value flows, channels, and intervention opportunities.</div>
       </div>
     </div>
   </div>
-
-</div><!-- /main -->
+</div>
 
 <div id="tt">
   <div class="tt-name" id="tt-name"></div>
@@ -454,33 +332,51 @@ svg#g.dragging { cursor:grabbing; }
 
 <script>
 // ═══════════════════════════════════════════════════════
-// DATA
+// PALETTE — matching original PNG
 // ═══════════════════════════════════════════════════════
+const CAT = {
+  oea:     { fill:'#EFE534', stroke:'#C8BC00', text:'#2A2400', label:'OEA Unit' },
+  admin:   { fill:'#EAE6FA', stroke:'#9080CC', text:'#3A2A80', label:'Administration' },
+  channel: { fill:'#A8D8F4', stroke:'#5090C0', text:'#003058', label:'Digital Channel' },
+  partner: { fill:'#7A6E26', stroke:'#584E10', text:'#FFFFFF', label:'Partner Institution' },
+  support: { fill:'#52B86A', stroke:'#38984A', text:'#FFFFFF', label:'Financial & Academic' },
+  student: { fill:'#CBB186', stroke:'#A89060', text:'#2A1800', label:'Student Stakeholder' },
+  primary: { fill:'#74C84E', stroke:'#50A030', text:'#1A3A08', label:'Primary Actor' },
+  risk:    { fill:'#FFFFFF', stroke:'#D93030', text:'#C02020', label:'Risk Factor', dashed:true },
+};
 
 const FLOW = {
-  info:      { color:'#4A9EC4', label:'Information' },
-  financial: { color:'#E8A040', label:'Financial' },
-  emotional: { color:'#C46090', label:'Emotional/Social' },
-  authority: { color:'#7C6FCD', label:'Authority/Decision' },
-  task:      { color:'#6EB88A', label:'Task/Coordination' },
-  risk:      { color:'#C05050', label:'Risk Flow' },
+  info:      { color:'#5090C0', label:'Information' },
+  financial: { color:'#D48020', label:'Financial' },
+  emotional: { color:'#A04080', label:'Emotional/Social' },
+  authority: { color:'#5040A0', label:'Authority/Decision' },
+  task:      { color:'#48A860', label:'Task/Coordination' },
+  risk:      { color:'#D93030', label:'Risk Flow' },
 };
-const CAT = {
-  oea:      { color:'#D4A843', text:'#3A2800', label:'OEA Unit' },
-  admin:    { color:'#7C6FCD', text:'#FFFFFF', label:'Administration' },
-  channel:  { color:'#3A9CC8', text:'#FFFFFF', label:'Digital Channel' },
-  partner:  { color:'#7A8C6E', text:'#FFFFFF', label:'Partner Institution' },
-  financial:{ color:'#C4785A', text:'#FFFFFF', label:'Financial & Academic' },
-  student:  { color:'#C4956A', text:'#3A1A00', label:'Student Stakeholder' },
-  risk:     { color:'#C05050', text:'#FFFFFF', label:'Risk Factor' },
-};
-const ST = { broken:'broken', strained:'strained', healthy:'healthy' };
+
 const ALL = ['discovery','application','post-deposit','departure','post-abroad'];
 
-// ── NODES ─────────────────────────────────────────────
-// Spacing scale: core = ±0, inner ring ~180–280, mid ~380–460, outer ~520–620
-// All r values slightly reduced from v3 to give breathing room
+// ── GROUP CLUSTER ELLIPSES ─────────────────────────────
+// Drawn as dashed ellipses behind nodes, matching original PNG style
+const GROUPS = [
+  {
+    id:'g-exchange', label:'OEA Exchange Program',
+    cx:-280, cy:115, rx:180, ry:140,
+    labelX:-430, labelY:-28,
+  },
+  {
+    id:'g-faculty', label:'OEA Faculty-led Program',
+    cx:340, cy:110, rx:200, ry:155,
+    labelX:440, labelY:-48,
+  },
+  {
+    id:'g-risk', label:'External Risk + Uncontrollable Factors',
+    cx:-80, cy:525, rx:310, ry:75,
+    labelX:-360, labelY:484,
+  },
+];
 
+// ── NODES ──────────────────────────────────────────────
 const NODES = [
   // Core
   { id:'pratt-oea', label:'Pratt OEA', sub:'Office of Education Abroad', cat:'oea', r:56,
@@ -495,15 +391,15 @@ const NODES = [
     interventions:['Planner Passport: centralized step-by-step tracker','Support Suitcase: structured orientation resource','Standardized faculty communication protocols'],
     x:0, y:0 },
 
-  { id:'oea-exchange', label:'Exchange Program', sub:'Semester-long', cat:'oea', r:44,
+  { id:'oea-exchange', label:'OEA Exchange Program', sub:'Semester-long', cat:'oea', r:48,
     phases:ALL, scope:'in', power:70, interest:85, emotionalLoad:60,
     desc:'Manages full-semester exchanges placing Pratt students at partner universities globally. Bilateral agreement requires reciprocal student exchange.',
     painPoints:[{ head:'Credit Transfer Opacity', body:'Students unsure if abroad credits count toward their degree before committing.' }],
     goals:['Place students successfully at partner schools','Maintain reciprocal exchange agreements','Ensure seamless credit transfer'],
     channels:['Terra Dotta','Email','Partner school portals'],
-    x:-230, y:55 },
+    x:-235, y:60 },
 
-  { id:'oea-faculty', label:'Faculty-led Program', sub:'Short-term · Critical', cat:'oea', r:44,
+  { id:'oea-faculty', label:'OEA Faculty-led Program', sub:'Short-term · Critical', cat:'oea', r:48,
     phases:ALL, scope:'in', power:70, interest:90, emotionalLoad:75,
     desc:'Short-term programs led by Pratt faculty during academic breaks. HIGHEST WITHDRAWAL RISK — 39.28% withdraw post-deposit. Compressed timeline creates compounding pressure.',
     painPoints:[
@@ -513,23 +409,23 @@ const NODES = [
     goals:['Retain students post-deposit','Deliver enriching short-term experiences','Reduce admin burden on faculty'],
     channels:['Terra Dotta','Email','Canvas'],
     interventions:['Standardized pre-departure communication timeline','Faculty admin handoff to OEA staff'],
-    x:230, y:55 },
+    x:235, y:60 },
 
-  { id:'oea-staff-ex', label:'OEA Staff', sub:'Exchange (Olivia, Paige)', cat:'oea', r:25,
+  { id:'oea-staff-ex', label:'OEA Staff', sub:'Exchange (Olivia, Paige)', cat:'oea', r:26,
     phases:ALL, scope:'in', power:55, interest:85, emotionalLoad:70,
     desc:'Day-to-day operations staff for the Exchange Program. Primary student contact for logistics, documentation, and support.',
     painPoints:[{ head:'Reactive Support Model', body:'Staff spend significant time fielding urgent queries that proactive communication could prevent.' }],
     goals:['Process applications efficiently','Support students through documentation'],
     channels:['Email','Terra Dotta','In-person'],
-    x:-310, y:175 },
+    x:-310, y:180 },
 
-  { id:'oea-staff-fl', label:'OEA Staff', sub:'Faculty-led (Paige, Topeka)', cat:'oea', r:25,
+  { id:'oea-staff-fl', label:'OEA Staff', sub:'Faculty-led (Paige, Topeka)', cat:'oea', r:26,
     phases:ALL, scope:'in', power:55, interest:85, emotionalLoad:75,
     desc:'Coordinates faculty-led program logistics. Often the last line of support when students are overwhelmed in the post-deposit phase.',
     painPoints:[{ head:'Surge Support Load', body:'Disproportionate contact volume in post-deposit window.' }],
     goals:['Coordinate program logistics','Support faculty leaders','Prevent last-minute withdrawals'],
     channels:['Email','Terra Dotta','Phone'],
-    x:310, y:175 },
+    x:320, y:180 },
 
   { id:'faculty-prof', label:'Faculty / Professor', sub:'Program Leader', cat:'oea', r:32,
     phases:['application','post-deposit','departure','post-abroad'], scope:'in', power:65, interest:75, emotionalLoad:65,
@@ -541,9 +437,9 @@ const NODES = [
     goals:['Lead enriching programs','Maintain professional work','Provide bounded student support'],
     channels:['Email','Canvas','Direct messaging'],
     interventions:['Define faculty vs. OEA communication boundaries','Provide faculty with templates'],
-    x:450, y:55 },
+    x:460, y:65 },
 
-  // Administration — top, spread wide
+  // Administration
   { id:'pratt-admin', label:'Pratt Administration', sub:'Institutional Governance', cat:'admin', r:40,
     phases:ALL, scope:'out', power:95, interest:50, emotionalLoad:10,
     desc:'Central institutional authority. High power to allocate resources and set policy, but low direct student contact. Terra Dotta constraints and budget limits originate here.',
@@ -559,7 +455,7 @@ const NODES = [
     channels:['Internal email','Meetings'],
     x:-235, y:-275 },
 
-  // Digital channels — between admin and OEA, spread wide
+  // Digital Channels
   { id:'terra-dotta', label:'Terra Dotta', sub:'Application Platform', cat:'channel', r:34,
     phases:['application','post-deposit'], scope:'out', power:80, interest:0, emotionalLoad:0,
     desc:'The institutional application platform. INSTITUTIONAL CONSTRAINT — out of scope for redesign. Students use it for applications but find information fragmented with no unified task view.',
@@ -573,7 +469,7 @@ const NODES = [
 
   { id:'email-channel', label:'Email / PDF', sub:'Primary Comms Channel', cat:'channel', r:30,
     phases:['post-deposit'], scope:'out', power:40, interest:0, emotionalLoad:0,
-    desc:'The dominant communication mode. Critical pre-departure information arrives by email and PDF. Students report very low retention of email-delivered information.',
+    desc:'The dominant communication mode. Critical pre-departure information arrives by email and PDF. Students report very low retention.',
     painPoints:[
       { head:'Email Overload', body:'Critical information buried in threads — students can\'t track what\'s actionable.' },
       { head:'No Progressive Disclosure', body:'PDFs dump all information at once rather than surfacing it when relevant.' }
@@ -584,36 +480,36 @@ const NODES = [
 
   { id:'canvas', label:'Canvas LMS', sub:'Academic Platform', cat:'channel', r:24,
     phases:['departure','post-abroad'], scope:'out', power:30, interest:0, emotionalLoad:0,
-    desc:'Used primarily for academic coursework during and after the abroad program. Mostly backstage during the critical pre-departure withdrawal phase.',
+    desc:'Used primarily for academic coursework. Backstage during the critical pre-departure phase.',
     goals:['Deliver course content','Track academic progress'],
     channels:['Web platform'],
     x:360, y:-75 },
 
-  // Partners — left cluster, pushed far left
-  { id:'exchange-sch', label:'Exchange School', sub:'Intl Student Office', cat:'partner', r:36,
+  // Partner Institutions
+  { id:'exchange-sch', label:'Exchange School', sub:'Office of Intl Students', cat:'partner', r:36,
     phases:['application','post-deposit','departure','post-abroad'], scope:'out', power:70, interest:60, emotionalLoad:20,
-    desc:'Partner universities managing incoming Pratt exchange students. Their deadlines and requirements add coordination load students must navigate with little OEA guidance.',
+    desc:'Partner universities managing incoming Pratt exchange students. Their deadlines and requirements add coordination load students navigate with little OEA guidance.',
     painPoints:[{ head:'External Deadline Opacity', body:'Partner school requirements not clearly communicated through OEA.' }],
     goals:['Maintain bilateral exchange partnership','Integrate incoming exchange students'],
     channels:['Email','Partner portals','Direct OEA liaison'],
-    x:-470, y:-60 },
+    x:-455, y:-55 },
 
-  { id:'prof-foreign', label:'Foreign Faculty', sub:'At Exchange School', cat:'partner', r:28,
+  { id:'prof-foreign', label:'Professors / Faculty', sub:'From Exchange School', cat:'partner', r:28,
     phases:['departure','post-abroad'], scope:'out', power:40, interest:40, emotionalLoad:30,
     desc:'Faculty at partner institutions. Mostly active post-departure — limited influence on withdrawal risk.',
     goals:['Teach exchange students effectively','Build international academic network'],
     channels:['Direct instruction','Email'],
-    x:-510, y:115 },
+    x:-495, y:120 },
 
   { id:'peers-abroad', label:'Peers Abroad', sub:'Local & Intl Students', cat:'partner', r:24,
     phases:['departure','post-abroad'], scope:'out', power:20, interest:30, emotionalLoad:50,
-    desc:'Local and international students at partner schools. Informal support network once abroad. No role in pre-departure retention.',
+    desc:'Local and international students at partner schools. Informal support network once abroad.',
     goals:['Build international friendships','Cultural knowledge exchange'],
     channels:['Direct social interaction'],
-    x:-490, y:245 },
+    x:-475, y:250 },
 
-  // Financial & Academic — right-left of student
-  { id:'academic-adv', label:'Academic Advisor', sub:'Graduation Tracking', cat:'financial', r:32,
+  // Financial & Academic — using 'support' category (green, matching original)
+  { id:'academic-adv', label:'Academic Advisor', sub:'Graduation Tracking', cat:'support', r:32,
     phases:['discovery','application','post-deposit'], scope:'in', power:65, interest:70, emotionalLoad:40,
     desc:'Critical but often backstage actor. Students need advisors to confirm abroad courses won\'t derail graduation — but access is slow and happens too late.',
     painPoints:[
@@ -622,9 +518,9 @@ const NODES = [
     ],
     goals:['Ensure academic integrity of abroad experience','Track graduation pathway','Build student confidence'],
     channels:['In-person appointments','Email','One Pratt portal'],
-    x:160, y:130 },
+    x:160, y:132 },
 
-  { id:'fin-dept', label:'Financial Department', sub:'Aid & Payments', cat:'financial', r:30,
+  { id:'fin-dept', label:'Financial Dept. Staff', sub:'Aid & Payments', cat:'support', r:30,
     phases:['application','post-deposit'], scope:'in', power:70, interest:55, emotionalLoad:30,
     desc:'Manages financial aid, tuition, scholarships, and payment schedules. Financial uncertainty is a top withdrawal driver yet this department is largely backstage.',
     painPoints:[
@@ -636,7 +532,7 @@ const NODES = [
     interventions:['Surface financial aid options early','Provide clear cost timeline before deposit'],
     x:-195, y:305 },
 
-  { id:'geoblue', label:'GeoBlue Insurance', sub:'Emergency & Health', cat:'financial', r:25,
+  { id:'geoblue', label:'GeoBlue Insurance', sub:'Emergency & Health', cat:'support', r:25,
     phases:['post-deposit','departure'], scope:'in', power:60, interest:20, emotionalLoad:10,
     desc:'Mandatory health insurance for study abroad. Enrollment is a required post-deposit step students often don\'t know about until late.',
     painPoints:[{ head:'Hidden Requirement', body:'Surprise mandatory enrollment adds to post-deposit overwhelm.' }],
@@ -644,19 +540,19 @@ const NODES = [
     channels:['Online enrollment portal','Email'],
     x:-330, y:260 },
 
-  { id:'mentors', label:'Professional Mentors', sub:'Career Support', cat:'financial', r:25,
+  { id:'mentors', label:'Profession Mentors', sub:'Career Support', cat:'support', r:25,
     phases:['post-deposit','departure','post-abroad'], scope:'in', power:30, interest:55, emotionalLoad:60,
-    desc:'Career mentors who help students see the professional value of international experience. Emotional support role that sustains motivation through difficult logistics.',
+    desc:'Career mentors who help students see the professional value of international experience. Emotional support sustains motivation through difficult logistics.',
     goals:['Connect experience to career outcomes','Provide motivational support'],
     channels:['Direct meetings','Email'],
     x:350, y:275 },
 
-  // Students — bottom center cluster
-  { id:'student', label:'Outbound Student', sub:'Primary Actor', cat:'student', r:52,
+  // Students — Outbound Student is 'primary' (green) matching original
+  { id:'student', label:'Outbound Student', sub:'Primary Actor', cat:'primary', r:52,
     phases:ALL, scope:'in', power:40, interest:95, emotionalLoad:95,
     desc:'The central actor the entire ecosystem must serve. Post-deposit, they face a coordination crisis: visa documents, financial payments, insurance, course approvals, and travel logistics arriving simultaneously with no clear sequence and no single guide.',
     painPoints:[
-      { head:'Coordination Overload', body:'Multiple simultaneous requirements with no unified task view. The student becomes the de-facto coordinator of a fragmented process.' },
+      { head:'Coordination Overload', body:'Multiple simultaneous requirements with no unified task view. The student is the de-facto coordinator of a fragmented process.' },
       { head:'Information Fragmentation', body:'Required information distributed across Terra Dotta, email, PDF, Canvas, and word-of-mouth.' },
       { head:'Emotional Compounding', body:'Each unresolved question raises anxiety. Uncertainty about visa bleeds into confidence about the whole decision.' },
       { head:'Financial Uncertainty', body:'After deposit, still unclear on total costs, aid availability, and payment deadlines.' },
@@ -683,34 +579,34 @@ const NODES = [
     interventions:['Formalize peer mentorship program in post-deposit phase'],
     x:120, y:410 },
 
-  { id:'peers-out', label:'Peer Outbound Students', sub:'Shared Journey', cat:'student', r:24,
+  { id:'peers-out', label:'Peers / Other Outbound', sub:'Shared Journey', cat:'student', r:24,
     phases:['post-deposit','departure'], scope:'in', power:20, interest:75, emotionalLoad:65,
     desc:'Fellow students navigating the same process simultaneously. High mutual trust — can normalize confusion or amplify collective anxiety.',
     goals:['Share resources and information','Provide mutual emotional support'],
     channels:['Direct peer communication','Group chats'],
-    x:260, y:385 },
+    x:255, y:385 },
 
-  // Risk — bottom, spread wide
-  { id:'passport', label:'Passport & Visa Docs', sub:'Documentation Risk', cat:'risk', r:29,
+  // Risk Factors — white fill + red dashed border (matching original)
+  { id:'passport', label:'Passport Related', sub:'Documentation Risk', cat:'risk', r:30,
     phases:['post-deposit'], scope:'out', power:85, interest:0, emotionalLoad:0,
-    desc:'Passport timelines and visa documentation are the #1 source of student confusion post-deposit. Requirements vary by destination and students have no single place to track them.',
+    desc:'Passport timelines and visa documentation are the #1 source of student confusion post-deposit. Requirements vary by destination with no single guide.',
     painPoints:[
       { head:'No Clear Timeline', body:'Students don\'t know when to start visa applications. Late start risks missing departure.' },
-      { head:'Destination-Specific Opacity', body:'OEA communication doesn\'t always differentiate per-program visa requirements.' }
+      { head:'Destination-Specific Opacity', body:'OEA communication doesn\'t always differentiate per-program requirements.' }
     ],
     goals:['Facilitate legal student entry to destination country'],
     channels:['Government portals','Consulate appointments','OEA guidance'],
     x:55, y:540 },
 
-  { id:'flight', label:'Flight & Travel', sub:'Logistics Risk', cat:'risk', r:24,
+  { id:'flight', label:'Flight Related', sub:'Logistics Risk', cat:'risk', r:26,
     phases:['post-deposit','departure'], scope:'out', power:60, interest:0, emotionalLoad:0,
     desc:'Flight booking is tied to visa timeline. Students unsure whether to book before visa approval creates compounding risk.',
     painPoints:[{ head:'Visa-Flight Dependency', body:'OEA guidance on sequencing flight booking vs. visa approval is insufficient.' }],
     goals:['Enable student travel to destination'],
     channels:['Airline platforms','Travel tools'],
-    x:215, y:530 },
+    x:210, y:532 },
 
-  { id:'visa-dest', label:'Destination Visa Office', sub:'Foreign Government', cat:'risk', r:29,
+  { id:'visa-dest', label:'Administration for Visa to Destination', sub:'Foreign Government', cat:'risk', r:32,
     phases:['post-deposit'], scope:'out', power:90, interest:0, emotionalLoad:0,
     desc:'Foreign government visa administration. Entirely outside OEA\'s control. Unpredictable processing times create anxiety that without proactive support leads to withdrawal.',
     painPoints:[{ head:'Uncontrollable External', body:'OEA can only help students prepare — cannot influence timelines or requirements.' }],
@@ -718,72 +614,68 @@ const NODES = [
     channels:['Consulate portals','In-person appointments'],
     x:-165, y:540 },
 
-  { id:'intl-rel', label:'International Relations', sub:'Geopolitical Risk', cat:'risk', r:24,
+  { id:'intl-rel', label:'International Relations Related', sub:'Geopolitical Risk', cat:'risk', r:26,
     phases:ALL, scope:'out', power:85, interest:0, emotionalLoad:0,
     desc:'Geopolitical context — travel advisories, diplomatic relations, political instability — can invalidate program destinations. Entirely outside OEA control.',
     goals:['Maintain international student exchange frameworks'],
     channels:['Government policy','Institutional advisories'],
-    x:-340, y:500 },
+    x:-335, y:508 },
 ];
 
-// ── EDGES ─────────────────────────────────────────────
 const EDGES = [
-  { s:'pratt-admin', t:'pratt-oea',     flow:'authority', label:'Budget & institutional mandate',              status:'healthy',  phases:ALL,         w:2,   bi:false },
-  { s:'pratt-oea',   t:'pratt-admin',   flow:'info',      label:'Program outcomes & enrollment data',          status:'healthy',  phases:ALL,         w:1.2 },
-  { s:'pratt-admin', t:'terra-dotta',   flow:'authority', label:'Institutional constraint — platform locked',  status:'strained', phases:ALL,         w:1.8 },
-  { s:'pratt-intl',  t:'pratt-oea',     flow:'task',      label:'International strategy coordination',         status:'healthy',  phases:ALL,         w:1.2 },
-  { s:'pratt-oea',   t:'oea-exchange',  flow:'authority', label:'Manages exchange program',                    status:'healthy',  phases:ALL,         w:2 },
-  { s:'pratt-oea',   t:'oea-faculty',   flow:'authority', label:'Manages faculty-led program',                 status:'healthy',  phases:ALL,         w:2 },
-  { s:'pratt-oea',   t:'terra-dotta',   flow:'task',      label:'Publishes requirements & tracks applications',status:'strained', phases:['application','post-deposit'], w:1.8, channel:'Terra Dotta' },
-  { s:'pratt-oea',   t:'email-channel', flow:'info',      label:'Sends pre-departure guidance',                status:'broken',   phases:['post-deposit'], w:1.8, friction:'Critical info buried — low student retention', channel:'Email' },
-  { s:'oea-faculty', t:'email-channel', flow:'info',      label:'Program-specific updates',                    status:'strained', phases:['post-deposit'], w:1.4, friction:'Inconsistent across faculty leaders' },
-  { s:'terra-dotta',   t:'student', flow:'info',      label:'Application status & document checklist', status:'strained', phases:['application','post-deposit'], w:2, friction:'Students must cross-reference with email & PDF', channel:'Terra Dotta' },
-  { s:'email-channel', t:'student', flow:'info',      label:'Critical pre-departure information',      status:'broken',   phases:['post-deposit'], w:2, friction:'High volume, low retention, no task sequencing', channel:'Email' },
-  { s:'canvas',        t:'student', flow:'info',      label:'Academic coursework and content',         status:'healthy',  phases:['departure','post-abroad'], w:1.2, channel:'Canvas' },
-  { s:'oea-exchange', t:'oea-staff-ex', flow:'task', label:'Directs daily operations',         status:'healthy', phases:ALL,        w:1.2 },
-  { s:'oea-faculty',  t:'oea-staff-fl', flow:'task', label:'Directs daily operations',         status:'healthy', phases:ALL,        w:1.2 },
-  { s:'oea-faculty',  t:'faculty-prof', flow:'authority', label:'Program coordination',        status:'strained', phases:['post-deposit','departure'], w:1.8, friction:'Faculty absorbing admin tasks outside role' },
-  { s:'oea-staff-ex', t:'student', flow:'info',      label:'Application & logistics support',  status:'healthy',  phases:['application','post-deposit'], w:1.8 },
-  { s:'oea-staff-fl', t:'student', flow:'info',      label:'Program & pre-departure support',  status:'strained', phases:['post-deposit'], w:1.8, friction:'Reactive — only reached when student is overwhelmed' },
-  { s:'faculty-prof', t:'student', flow:'info',      label:'Program details & academic guidance', status:'strained', phases:['post-deposit','departure'], w:1.8, friction:'Inconsistent by faculty admin style' },
-  { s:'faculty-prof', t:'student', flow:'emotional', label:'On-ground support while abroad',   status:'healthy',  phases:['departure'], w:1.2 },
-  { s:'oea-exchange', t:'exchange-sch', flow:'task', label:'Bilateral partnership management', status:'healthy', phases:['application','post-deposit'], w:1.8, bi:true },
-  { s:'exchange-sch', t:'prof-foreign', flow:'authority', label:'Employs and directs faculty', status:'healthy', phases:['departure'], w:1.2 },
-  { s:'prof-foreign', t:'student',  flow:'info',     label:'Teaching & guidance abroad',       status:'healthy', phases:['departure','post-abroad'], w:1.2 },
-  { s:'peers-abroad', t:'student',  flow:'emotional',label:'Cultural exchange & peer connection', status:'healthy', phases:['departure','post-abroad'], w:1.2 },
-  { s:'academic-adv', t:'student',  flow:'info',     label:'Credit approval & graduation path', status:'strained', phases:['discovery','application','post-deposit'], w:1.8, friction:'Not surfaced at moment of student uncertainty' },
-  { s:'fin-dept',     t:'student',  flow:'financial',label:'Financial aid, payments, cost clarity', status:'broken', phases:['application','post-deposit'], w:2, friction:'Financial opacity is top withdrawal driver' },
-  { s:'geoblue',      t:'student',  flow:'task',     label:'Mandatory insurance enrollment',   status:'strained', phases:['post-deposit'], w:1.4, friction:'Surprise requirement adds to post-deposit overload' },
-  { s:'mentors',      t:'student',  flow:'emotional',label:'Career motivation & support',      status:'healthy',  phases:['post-deposit','departure'], w:1.2 },
-  { s:'pratt-admin',  t:'fin-dept', flow:'authority',label:'Budget & aid policy',              status:'healthy',  phases:ALL, w:1.2 },
-  { s:'parents',    t:'student',  flow:'emotional', label:'Family support & confidence',        status:'healthy',  phases:['application','post-deposit','departure'], w:1.8, bi:true },
-  { s:'past-student',t:'student', flow:'info',      label:'Lived experience & normalisation',  status:'healthy',  phases:['discovery','application','post-deposit'], w:1.2 },
-  { s:'peers-out',  t:'student',  flow:'emotional', label:'Peer support & anxiety sharing',    status:'healthy',  phases:['post-deposit','departure'], w:1.2, bi:true },
-  { s:'passport',  t:'student',   flow:'risk', label:'Visa confusion — #1 withdrawal driver', status:'broken',  phases:['post-deposit'], w:2.5, risk:true, friction:'39% of students don\'t know what\'s required or when' },
-  { s:'visa-dest', t:'student',   flow:'risk', label:'Unpredictable approval timeline',        status:'broken',  phases:['post-deposit'], w:2,   risk:true },
-  { s:'visa-dest', t:'passport',  flow:'risk', label:'Governs documentation requirements',     status:'healthy', phases:['post-deposit'], w:1.2, risk:true },
-  { s:'flight',    t:'student',   flow:'risk', label:'Visa-flight dependency confusion',       status:'strained',phases:['post-deposit'], w:1.2, risk:true },
-  { s:'intl-rel',  t:'visa-dest', flow:'risk', label:'Policy influence on visa requirements',  status:'healthy', phases:ALL, w:1.2, risk:true },
-  { s:'intl-rel',  t:'student',   flow:'risk', label:'Geopolitical safety advisories',         status:'healthy', phases:ALL, w:1,   risk:true },
+  { s:'pratt-admin', t:'pratt-oea',     flow:'authority', label:'Provide Resources and Budgets',           status:'healthy',  phases:ALL, w:1.5 },
+  { s:'pratt-oea',   t:'pratt-admin',   flow:'info',      label:'Pay the department',                      status:'healthy',  phases:ALL, w:1 },
+  { s:'pratt-admin', t:'terra-dotta',   flow:'authority', label:'Institutional platform constraint',        status:'strained', phases:ALL, w:1.2 },
+  { s:'pratt-intl',  t:'pratt-oea',     flow:'task',      label:'International strategy coordination',      status:'healthy',  phases:ALL, w:1 },
+  { s:'pratt-oea',   t:'oea-exchange',  flow:'authority', label:'Engage with students & maintain programs', status:'healthy',  phases:ALL, w:1.8 },
+  { s:'pratt-oea',   t:'oea-faculty',   flow:'authority', label:'Manage faculty-led program',               status:'healthy',  phases:ALL, w:1.8 },
+  { s:'pratt-oea',   t:'terra-dotta',   flow:'task',      label:'Publishes requirements & tracks apps',     status:'strained', phases:['application','post-deposit'], w:1.5, channel:'Terra Dotta' },
+  { s:'pratt-oea',   t:'email-channel', flow:'info',      label:'Sends pre-departure guidance',             status:'broken',   phases:['post-deposit'], w:1.5, friction:'Critical info buried — low student retention' },
+  { s:'oea-faculty', t:'email-channel', flow:'info',      label:'Program-specific updates to students',     status:'strained', phases:['post-deposit'], w:1.2, friction:'Inconsistent across faculty leaders' },
+  { s:'terra-dotta',   t:'student', flow:'info',      label:'Application status & document checklist', status:'strained', phases:['application','post-deposit'], w:1.8, friction:'Students must cross-reference with email & PDF' },
+  { s:'email-channel', t:'student', flow:'info',      label:'Critical pre-departure information',      status:'broken',   phases:['post-deposit'], w:1.8, friction:'High volume, low retention, no task sequencing' },
+  { s:'canvas',        t:'student', flow:'info',      label:'Academic coursework and content',         status:'healthy',  phases:['departure','post-abroad'], w:1 },
+  { s:'oea-exchange', t:'oea-staff-ex', flow:'task', label:'Directs daily operations', status:'healthy', phases:ALL, w:1 },
+  { s:'oea-faculty',  t:'oea-staff-fl', flow:'task', label:'Directs daily operations', status:'healthy', phases:ALL, w:1 },
+  { s:'oea-faculty',  t:'faculty-prof', flow:'authority', label:'Program coordination',  status:'strained', phases:['post-deposit','departure'], w:1.4, friction:'Faculty absorbing admin tasks outside role' },
+  { s:'oea-staff-ex', t:'student', flow:'info',      label:'Application & logistics support',      status:'healthy',  phases:['application','post-deposit'], w:1.4 },
+  { s:'oea-staff-fl', t:'student', flow:'info',      label:'Program & pre-departure support',      status:'strained', phases:['post-deposit'], w:1.4, friction:'Reactive — only reached when overwhelmed' },
+  { s:'faculty-prof', t:'student', flow:'info',      label:'Program details & academic guidance',  status:'strained', phases:['post-deposit','departure'], w:1.4, friction:'Inconsistent by faculty admin style' },
+  { s:'faculty-prof', t:'student', flow:'emotional', label:'Provide programs & on-ground support', status:'healthy',  phases:['departure'], w:1 },
+  { s:'oea-exchange', t:'exchange-sch', flow:'task', label:'Maintain good relationships',          status:'healthy',  phases:['application','post-deposit'], w:1.6, bi:true },
+  { s:'exchange-sch', t:'prof-foreign', flow:'authority', label:'Employs and directs faculty',     status:'healthy',  phases:['departure'], w:1 },
+  { s:'prof-foreign', t:'student',  flow:'info',     label:'Unique courses & academic exchange',   status:'healthy',  phases:['departure','post-abroad'], w:1 },
+  { s:'peers-abroad', t:'student',  flow:'emotional',label:'Get paid / cultural exchange',         status:'healthy',  phases:['departure','post-abroad'], w:1 },
+  { s:'academic-adv', t:'student',  flow:'info',     label:'Academic advice & track graduation',   status:'strained', phases:['discovery','application','post-deposit'], w:1.6, friction:'Not surfaced at moment of student uncertainty' },
+  { s:'fin-dept',     t:'student',  flow:'financial',label:'Financial Support',                    status:'broken',   phases:['application','post-deposit'], w:1.8, friction:'Financial opacity is top withdrawal driver' },
+  { s:'geoblue',      t:'student',  flow:'task',     label:'Mandatory insurance enrollment',       status:'strained', phases:['post-deposit'], w:1.2, friction:'Surprise requirement adds to post-deposit overload' },
+  { s:'mentors',      t:'student',  flow:'emotional',label:'Growth advice / make them proud',      status:'healthy',  phases:['post-deposit','departure'], w:1 },
+  { s:'pratt-admin',  t:'fin-dept', flow:'authority',label:'Budget & aid policy',                  status:'healthy',  phases:ALL, w:1 },
+  { s:'parents',    t:'student',  flow:'emotional', label:'Financial support & emotional support', status:'healthy',  phases:['application','post-deposit','departure'], w:1.5, bi:true },
+  { s:'past-student',t:'student', flow:'info',      label:'Advice / friendship / personal value',  status:'healthy',  phases:['discovery','application','post-deposit'], w:1 },
+  { s:'peers-out',  t:'student',  flow:'emotional', label:'Resources & emotional support',         status:'healthy',  phases:['post-deposit','departure'], w:1, bi:true },
+  { s:'passport',  t:'student',   flow:'risk', label:'Visa confusion — #1 withdrawal driver',     status:'broken',   phases:['post-deposit'], w:2, risk:true, friction:'39% don\'t know what\'s required or when' },
+  { s:'visa-dest', t:'student',   flow:'risk', label:'Unpredictable approval timeline',            status:'broken',   phases:['post-deposit'], w:1.6, risk:true },
+  { s:'visa-dest', t:'passport',  flow:'risk', label:'Key document to raise visa approval route',  status:'healthy',  phases:['post-deposit'], w:1, risk:true },
+  { s:'flight',    t:'student',   flow:'risk', label:'Timeline affecting the departure date',      status:'strained', phases:['post-deposit'], w:1, risk:true },
+  { s:'intl-rel',  t:'visa-dest', flow:'risk', label:'Policy influence on visa requirements',      status:'healthy',  phases:ALL, w:1, risk:true },
+  { s:'intl-rel',  t:'student',   flow:'risk', label:'Affect international relations & the ecosystem', status:'healthy', phases:ALL, w:1, risk:true },
 ];
 
 const PHASES_META = {
-  all:          { label:'All Phases',                    color:'#141418' },
-  discovery:    { label:'Discovery',                     color:'#7A8C6E' },
-  application:  { label:'Application',                   color:'#3A9CC8' },
-  'post-deposit':{ label:'⚠ Post-Deposit · Critical',   color:'#C05050' },
-  departure:    { label:'Departure',                     color:'#D4A843' },
-  'post-abroad':{ label:'Post-Abroad',                   color:'#7C6FCD' },
+  all:           { label:'All Phases',               color:'#1A1A2E' },
+  discovery:     { label:'Discovery',                color:'#48A860' },
+  application:   { label:'Application',              color:'#5090C0' },
+  'post-deposit':{ label:'⚠ Post-Deposit · Critical',color:'#D93030' },
+  departure:     { label:'Departure',                color:'#C8A020' },
+  'post-abroad': { label:'Post-Abroad',              color:'#5040A0' },
 };
 
 // ═══════════════════════════════════════════════════════
-// STATE & SETUP
+// STATE
 // ═══════════════════════════════════════════════════════
-let xform    = d3.zoomIdentity;
-let activePhase = 'all';
-let activeView  = 'all';
-let selectedId  = null;
-let searchQ     = '';
+let xform = d3.zoomIdentity;
+let activePhase = 'all', activeView = 'all', selectedId = null, searchQ = '';
 
 const byId = {};
 NODES.forEach(n => byId[n.id] = n);
@@ -791,8 +683,7 @@ NODES.forEach(n => byId[n.id] = n);
 const svg   = d3.select('#g');
 const groot = d3.select('#groot');
 
-const zoom = d3.zoom()
-  .scaleExtent([0.1, 5])
+const zoom = d3.zoom().scaleExtent([0.08, 5])
   .on('zoom', e => { xform = e.transform; groot.attr('transform', e.transform); });
 
 svg.call(zoom).on('dblclick.zoom', null);
@@ -802,55 +693,52 @@ svg.on('mouseup mouseleave', () => svg.classed('dragging', false));
 // ═══════════════════════════════════════════════════════
 // FIT VIEW
 // ═══════════════════════════════════════════════════════
-function fitView(pad=90) {
+function fitView(pad = 80) {
   const W = document.getElementById('cvs').clientWidth;
   const H = document.getElementById('cvs').clientHeight;
   const vis = NODES.filter(n => nodeVisible(n));
   if (!vis.length) return;
-  const xs = vis.map(n=>n.x), ys = vis.map(n=>n.y);
-  const minX=Math.min(...xs)-90, maxX=Math.max(...xs)+90;
-  const minY=Math.min(...ys)-90, maxY=Math.max(...ys)+90;
-  const sc = Math.min((W-pad*2)/(maxX-minX),(H-pad*2)/(maxY-minY),1.3)*0.86;
-  const cx=(minX+maxX)/2, cy=(minY+maxY)/2;
-  svg.transition().duration(680).ease(d3.easeCubicInOut)
-    .call(zoom.transform, d3.zoomIdentity.translate(W/2-sc*cx, H/2-sc*cy).scale(sc));
+  const xs = vis.map(n => n.x), ys = vis.map(n => n.y);
+  const minX = Math.min(...xs) - 100, maxX = Math.max(...xs) + 100;
+  const minY = Math.min(...ys) - 100, maxY = Math.max(...ys) + 100;
+  const sc = Math.min((W - pad*2)/(maxX - minX), (H - pad*2)/(maxY - minY), 1.4) * 0.84;
+  const cx = (minX + maxX)/2, cy = (minY + maxY)/2;
+  svg.transition().duration(700).ease(d3.easeCubicInOut)
+    .call(zoom.transform, d3.zoomIdentity.translate(W/2 - sc*cx, H/2 - sc*cy).scale(sc));
 }
 
 // ═══════════════════════════════════════════════════════
 // VISIBILITY
 // ═══════════════════════════════════════════════════════
 function nodeVisible(n) {
-  if (activePhase!=='all' && !n.phases.includes(activePhase)) return false;
+  if (activePhase !== 'all' && !n.phases.includes(activePhase)) return false;
   if (searchQ && !n.label.toLowerCase().includes(searchQ) && !(n.sub||'').toLowerCase().includes(searchQ)) return false;
   return true;
 }
 function edgeVisible(e) {
-  if (activePhase!=='all' && !(e.phases||[]).includes(activePhase)) return false;
+  if (activePhase !== 'all' && !(e.phases||[]).includes(activePhase)) return false;
   if (!byId[e.s] || !byId[e.t]) return false;
   if (!nodeVisible(byId[e.s]) || !nodeVisible(byId[e.t])) return false;
-  if (activeView==='friction') return e.status==='broken'||e.status==='strained';
-  if (activeView!=='all' && e.flow!==activeView) return false;
+  if (activeView === 'friction') return e.status === 'broken' || e.status === 'strained';
+  if (activeView !== 'all' && e.flow !== activeView) return false;
   return true;
 }
 function nodeOpacity(n) {
-  if (!nodeVisible(n)) return 0.07;
+  if (!nodeVisible(n)) return 0.06;
   if (selectedId) {
-    if (n.id===selectedId) return 1;
-    const conn = EDGES.some(e=>(e.s===selectedId&&e.t===n.id)||(e.t===selectedId&&e.s===n.id));
-    return conn ? 0.9 : 0.12;
+    if (n.id === selectedId) return 1;
+    const conn = EDGES.some(e => (e.s===selectedId&&e.t===n.id)||(e.t===selectedId&&e.s===n.id));
+    return conn ? 1 : 0.1;
   }
   return 1;
 }
 function edgeOpacity(e) {
   if (!edgeVisible(e)) return 0;
-  const base = e.risk ? 0.5 : 0.45;
-  if (selectedId) {
-    return (e.s===selectedId||e.t===selectedId) ? 1 : 0.04;
-  }
-  return base;
+  if (selectedId) return (e.s===selectedId||e.t===selectedId) ? 1 : 0.03;
+  return e.risk ? 0.55 : 0.5;
 }
 function worstStatus(nodeId) {
-  const ss = EDGES.filter(e=>e.s===nodeId||e.t===nodeId).map(e=>e.status);
+  const ss = EDGES.filter(e => e.s===nodeId||e.t===nodeId).map(e => e.status);
   if (ss.includes('broken')) return 'broken';
   if (ss.includes('strained')) return 'strained';
   return 'healthy';
@@ -862,212 +750,226 @@ function worstStatus(nodeId) {
 function render() {
   groot.selectAll('*').remove();
 
-  // Post-deposit zone highlight
-  if (activePhase==='post-deposit') {
-    groot.append('ellipse')
-      .attr('cx',0).attr('cy',170).attr('rx',320).attr('ry',200)
-      .attr('fill','rgba(192,80,80,0.04)')
-      .attr('stroke','rgba(192,80,80,0.14)').attr('stroke-width',1.5)
-      .attr('stroke-dasharray','8 5');
+  // ─ Group cluster ellipses (drawn first, behind everything) ─
+  const visPhaseGroups = activePhase === 'all' || activePhase === 'post-deposit' || activePhase === 'application';
+  if (!selectedId && visPhaseGroups) {
+    GROUPS.forEach(g => {
+      // Check if any node in the area is visible
+      const grp = groot.append('g');
+
+      // Dashed ellipse — light gray, matching original
+      grp.append('ellipse')
+        .attr('cx', g.cx).attr('cy', g.cy)
+        .attr('rx', g.rx).attr('ry', g.ry)
+        .attr('fill', 'none')
+        .attr('stroke', '#AAAACC')
+        .attr('stroke-width', 1.5)
+        .attr('stroke-dasharray', '10 5');
+
+      // Purple pill label
+      const pilW = g.label.length * 6.2 + 20;
+      const pilH = 22;
+      grp.append('rect')
+        .attr('x', g.labelX - pilW/2).attr('y', g.labelY - pilH/2)
+        .attr('width', pilW).attr('height', pilH)
+        .attr('rx', 5)
+        .attr('fill', '#EDE8FA')
+        .attr('stroke', '#9C88D8')
+        .attr('stroke-width', 1);
+      grp.append('text')
+        .attr('x', g.labelX).attr('y', g.labelY + 4.5)
+        .attr('text-anchor', 'middle')
+        .attr('font-family', 'Inter, sans-serif')
+        .attr('font-size', 10).attr('font-weight', 700)
+        .attr('fill', '#5040A0')
+        .text(g.label);
+    });
   }
 
-  // ─ Edges ─────────────────────────────────────────────
+  // Post-deposit danger zone
+  if (activePhase === 'post-deposit') {
+    groot.append('ellipse')
+      .attr('cx', 0).attr('cy', 175).attr('rx', 310).attr('ry', 190)
+      .attr('fill', 'rgba(217,48,48,0.03)')
+      .attr('stroke', 'rgba(217,48,48,0.18)').attr('stroke-width', 1.5)
+      .attr('stroke-dasharray', '8 5');
+  }
+
+  // ─ Edges ──────────────────────────────────────────────
   const EG = groot.append('g');
   EDGES.forEach(e => {
-    const sn=byId[e.s], tn=byId[e.t];
-    if (!sn||!tn) return;
+    const sn = byId[e.s], tn = byId[e.t];
+    if (!sn || !tn) return;
     const op = edgeOpacity(e);
-    if (op<0.01) return;
+    if (op < 0.01) return;
 
-    const fc    = FLOW[e.flow]?.color||'#999';
-    const isHL  = selectedId && (e.s===selectedId||e.t===selectedId);
-    const sw    = isHL ? (e.w||1)*2.2 : (e.w||1)*1.3;
+    const fc   = FLOW[e.flow]?.color || '#888';
+    const isHL = selectedId && (e.s===selectedId||e.t===selectedId);
+    const sw   = isHL ? (e.w||1)*2.0 : (e.w||1)*1.1;
 
-    const dx=tn.x-sn.x, dy=tn.y-sn.y;
-    const dist=Math.sqrt(dx*dx+dy*dy)||1;
-    const curv=Math.min(48,dist*0.15);
-    const px=-dy/dist*curv, py=dx/dist*curv;
-    const mx=(sn.x+tn.x)/2+px, my=(sn.y+tn.y)/2+py;
-    const sr=sn.r+3, tr=tn.r+3;
-    const sx=sn.x+dx/dist*sr, sy=sn.y+dy/dist*sr;
-    const ex=tn.x-dx/dist*tr, ey=tn.y-dy/dist*tr;
-    const pathD=`M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
+    const dx = tn.x-sn.x, dy = tn.y-sn.y;
+    const dist = Math.sqrt(dx*dx+dy*dy)||1;
+    const curv = Math.min(40, dist*0.12);
+    const px = -dy/dist*curv, py = dx/dist*curv;
+    const mx = (sn.x+tn.x)/2+px, my = (sn.y+tn.y)/2+py;
+    const sr = sn.r+3, tr = tn.r+3;
+    const sx = sn.x+dx/dist*sr, sy = sn.y+dy/dist*sr;
+    const ex = tn.x-dx/dist*tr, ey = tn.y-dy/dist*tr;
+    const pathD = `M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
 
     const eg = EG.append('g');
 
-    // Glow underlayer for broken/strained when selected
-    if (isHL && (e.status==='broken'||e.status==='strained')) {
-      const gc = e.status==='broken'?'#C05050':'#E8A040';
-      eg.append('path').attr('d',pathD).attr('fill','none')
-        .attr('stroke',gc).attr('stroke-width',sw+5).attr('stroke-opacity',0.12).attr('stroke-linecap','round');
+    // Main line — thinner and cleaner than before
+    const ln = eg.append('path').attr('d', pathD).attr('fill', 'none')
+      .attr('stroke', fc).attr('stroke-width', sw)
+      .attr('stroke-opacity', op).attr('stroke-linecap', 'round')
+      .attr('stroke-dasharray', e.risk ? '8,5' : 'none')
+      .attr('marker-end', op > 0.02 ? `url(#arr-${isHL ? e.flow+'-hi' : e.flow})` : 'none');
+
+    if (e.risk && isHL) ln.classed('dash-flow', true).attr('stroke-dasharray', '8,5');
+
+    // Bidirectional return
+    if (e.bi && op > 0.02) {
+      eg.append('path').attr('d', `M${ex},${ey} Q${mx},${my} ${sx},${sy}`)
+        .attr('fill', 'none').attr('stroke', fc)
+        .attr('stroke-width', sw*0.65).attr('stroke-opacity', op*0.45)
+        .attr('stroke-linecap', 'round')
+        .attr('marker-end', `url(#arr-${e.flow})`);
     }
 
-    // Main edge line
-    const ln = eg.append('path').attr('d',pathD).attr('fill','none')
-      .attr('stroke',fc).attr('stroke-width',sw)
-      .attr('stroke-opacity',op).attr('stroke-linecap','round')
-      .attr('stroke-dasharray',e.risk?'7,5':'none')
-      .attr('marker-end',op>0.03?`url(#arr-${isHL?e.flow+'-hi':e.flow})`:'none');
+    // Always-visible inline label (small, like the original PNG)
+    if (e.label && op > 0.35) {
+      const t = 0.52;
+      const bx = (1-t)*(1-t)*sx + 2*(1-t)*t*mx + t*t*ex;
+      const by = (1-t)*(1-t)*sy + 2*(1-t)*t*my + t*t*ey;
 
-    if (e.risk&&isHL) ln.attr('class','flow-anim').attr('stroke-dasharray','9,5');
+      // Status color for label text
+      const lc = e.status==='broken' ? '#C02020' : e.status==='strained' ? '#A06010' : '#505070';
 
-    // Bidirectional return arrow
-    if (e.bi && op>0.03) {
-      const scat=CAT[sn.cat];
-      eg.append('path').attr('d',`M${ex},${ey} Q${mx},${my} ${sx},${sy}`)
-        .attr('fill','none').attr('stroke',scat.color)
-        .attr('stroke-width',sw*0.7).attr('stroke-opacity',op*0.5)
-        .attr('stroke-linecap','round')
-        .attr('marker-end',`url(#arr-${e.flow})`);
-    }
+      // Small white background for readability
+      const lw = Math.min(e.label.length * 5.6 + 10, 130);
+      eg.append('rect')
+        .attr('x', bx-lw/2).attr('y', by-8)
+        .attr('width', lw).attr('height', 13)
+        .attr('rx', 2).attr('fill', 'white').attr('opacity', isHL ? 0.96 : 0.78);
 
-    // Edge label when highlighted
-    if (isHL && op>0.3 && e.label) {
-      const t=0.5;
-      const bx=(1-t)*(1-t)*sx+2*(1-t)*t*mx+t*t*ex;
-      const by=(1-t)*(1-t)*sy+2*(1-t)*t*my+t*t*ey;
-      const lw=148, lh=22;
-      eg.append('rect').attr('x',bx-lw/2).attr('y',by-13).attr('width',lw).attr('height',lh)
-        .attr('rx',6).attr('fill','white').attr('opacity',0.95)
-        .attr('filter','url(#shadow)');
-      eg.append('text').attr('x',bx).attr('y',by+3.5)
-        .attr('text-anchor','middle').attr('font-family','Sora,sans-serif')
-        .attr('font-size',8.5).attr('font-weight',600)
-        .attr('fill',e.status==='broken'?'#C05050':e.status==='strained'?'#B06020':'#2A2A2A')
-        .text(e.label.length>36?e.label.slice(0,35)+'…':e.label);
-      if (e.friction && (e.status==='broken'||e.status==='strained')) {
-        const tc=e.status==='broken'?'#C05050':'#C07030';
-        const tbg=e.status==='broken'?'rgba(192,80,80,0.1)':'rgba(232,160,64,0.1)';
-        const tl=e.status==='broken'?'✕ Broken':'~ Strained';
-        eg.append('rect').attr('x',bx-32).attr('y',by+12).attr('width',64).attr('height',14).attr('rx',7).attr('fill',tbg);
-        eg.append('text').attr('x',bx).attr('y',by+22.5).attr('text-anchor','middle')
-          .attr('font-family','Sora,sans-serif').attr('font-size',7.5).attr('font-weight',700).attr('fill',tc).text(tl);
-      }
+      eg.append('text').attr('x', bx).attr('y', by+3)
+        .attr('text-anchor', 'middle')
+        .attr('font-family', 'Inter, sans-serif')
+        .attr('font-size', isHL ? 8.5 : 7.5)
+        .attr('font-weight', isHL ? 700 : 500)
+        .attr('fill', lc)
+        .text(e.label.length > 28 ? e.label.slice(0,27)+'…' : e.label);
     }
   });
 
-  // ─ Nodes ─────────────────────────────────────────────
+  // ─ Nodes ──────────────────────────────────────────────
   const NG = groot.append('g');
-  const tt  = document.getElementById('tt');
-  const ttN = document.getElementById('tt-name');
-  const ttS = document.getElementById('tt-sub');
-  const ttSt= document.getElementById('tt-st');
+  const tt   = document.getElementById('tt');
+  const ttN  = document.getElementById('tt-name');
+  const ttS  = document.getElementById('tt-sub');
+  const ttSt = document.getElementById('tt-st');
 
   NODES.forEach(n => {
-    const cat = CAT[n.cat];
-    const op  = nodeOpacity(n);
-    const isSel  = n.id===selectedId;
-    const isConn = selectedId&&!isSel&&EDGES.some(e=>(e.s===selectedId&&e.t===n.id)||(e.t===selectedId&&e.s===n.id));
-    const ws     = worstStatus(n.id);
+    const cat  = CAT[n.cat];
+    const op   = nodeOpacity(n);
+    const isSel  = n.id === selectedId;
+    const isConn = selectedId && !isSel && EDGES.some(e=>(e.s===selectedId&&e.t===n.id)||(e.t===selectedId&&e.s===n.id));
+    const ws   = worstStatus(n.id);
 
     const g = NG.append('g')
-      .attr('transform',`translate(${n.x},${n.y})`)
-      .attr('opacity',op)
-      .style('cursor',nodeVisible(n)?'pointer':'default');
+      .attr('transform', `translate(${n.x},${n.y})`)
+      .attr('opacity', op)
+      .style('cursor', nodeVisible(n) ? 'pointer' : 'default');
 
-    // Pulse for core nodes
+    // Pulse ring for core actors
     if ((n.id==='pratt-oea'||n.id==='student') && op>0.5 && !isSel) {
-      g.append('circle').attr('r',n.r+11).attr('fill','none')
-        .attr('stroke',cat.color).attr('stroke-width',1.5).attr('class','pulse-ring');
+      g.append('circle').attr('r', n.r+14).attr('fill', 'none')
+        .attr('stroke', cat.stroke).attr('stroke-width', 1.5)
+        .attr('class', 'pulse-el').attr('opacity', 0.35);
     }
 
-    // Selection halo
+    // Selection outer ring
     if (isSel) {
-      g.append('circle').attr('r',n.r+10).attr('fill',cat.color).attr('opacity',0.12);
-      g.append('circle').attr('r',n.r+7).attr('fill','none').attr('stroke',cat.color).attr('stroke-width',2.5).attr('opacity',0.9);
+      g.append('circle').attr('r', n.r+12).attr('fill', cat.fill).attr('opacity', 0.15);
+      g.append('circle').attr('r', n.r+8).attr('fill', 'none')
+        .attr('stroke', cat.stroke).attr('stroke-width', 3).attr('opacity', 0.95);
     }
+
     // Connected dashed ring
     if (isConn) {
-      g.append('circle').attr('r',n.r+6).attr('fill','none').attr('stroke',cat.color)
-        .attr('stroke-width',1.5).attr('opacity',0.4).attr('stroke-dasharray','4 3');
+      g.append('circle').attr('r', n.r+7).attr('fill', 'none')
+        .attr('stroke', cat.stroke).attr('stroke-width', 1.5)
+        .attr('opacity', 0.5).attr('stroke-dasharray', '4 3');
     }
 
-    // Status ring
-    if (ws==='broken') {
-      g.append('circle').attr('r',n.r+5).attr('fill','none').attr('stroke','#C05050')
-        .attr('stroke-width',2).attr('opacity',0.45).attr('stroke-dasharray','5 3')
-        .attr('class','flow-anim');
-    } else if (ws==='strained') {
-      g.append('circle').attr('r',n.r+5).attr('fill','none').attr('stroke','#E8A040')
-        .attr('stroke-width',1.5).attr('opacity',0.35);
+    // Status indicator ring (broken = red animated dashes, strained = amber)
+    if (ws === 'broken' && !isSel) {
+      g.append('circle').attr('r', n.r+6).attr('fill', 'none')
+        .attr('stroke', '#D93030').attr('stroke-width', 2)
+        .attr('opacity', 0.5).attr('stroke-dasharray', '5 3')
+        .classed('dash-flow', true);
+    } else if (ws === 'strained' && !isSel) {
+      g.append('circle').attr('r', n.r+5).attr('fill', 'none')
+        .attr('stroke', '#D48020').attr('stroke-width', 1.5).attr('opacity', 0.4);
     }
 
-    // Out-of-scope faint dashed outer ring
-    if (n.scope==='out' && n.cat!=='risk') {
-      g.append('circle').attr('r',n.r+9).attr('fill','none').attr('stroke','rgba(0,0,0,0.06)')
-        .attr('stroke-width',1).attr('stroke-dasharray','3,3');
+    // ── MAIN CIRCLE — flat, no shadow ────────────────────
+    if (cat.dashed) {
+      // Risk nodes: white fill + red dashed border (matching original PNG exactly)
+      g.append('circle').attr('r', n.r)
+        .attr('fill', '#FFFFFF').attr('stroke', '#D93030')
+        .attr('stroke-width', 2.5).attr('stroke-dasharray', '6 4');
+    } else {
+      g.append('circle').attr('r', n.r)
+        .attr('fill', cat.fill).attr('stroke', cat.stroke).attr('stroke-width', 2);
     }
-    // Risk nodes get dashed ring
-    if (n.cat==='risk') {
-      g.append('circle').attr('r',n.r+8).attr('fill','none').attr('stroke',cat.color)
-        .attr('stroke-width',1.2).attr('opacity',0.25).attr('stroke-dasharray','5 4');
-    }
 
-    // Main circle
-    g.append('circle').attr('r',n.r).attr('fill',cat.color)
-      .attr('filter',isSel?'url(#glow-sel)':'url(#shadow)');
-
-    // Specular
-    g.append('circle').attr('cx',-n.r*0.25).attr('cy',-n.r*0.25).attr('r',n.r*0.52)
-      .attr('fill','white').attr('opacity',0.09);
-
-    // ── Node label with proper padding ─────────────────
+    // ── NODE LABELS — wrapped with proper padding ─────────
     const words = n.label.split(' ');
-    // Adaptive line-wrapping based on radius
-    const charsPerLine = Math.floor(n.r * 0.42);
+    const charsPerLine = Math.max(6, Math.floor(n.r * 0.40));
     const lines = wrapText(words, charsPerLine);
-    const fs   = Math.max(7.5, Math.min(11, n.r * 0.20));
-    const lh   = fs * 1.38;
-    const hasSub = n.sub && n.r >= 28;
-    const totalLabelH = lines.length * lh;
-    // Center the text block vertically, push up slightly if sub-label present
-    let baseY = -totalLabelH/2 + lh*0.4;
-    if (hasSub) baseY -= fs*0.55;
+    const isRisk = cat.dashed;
+    const fs = Math.max(7, Math.min(11.5, n.r * 0.21));
+    const lh = fs * 1.35;
+    const hasSub = n.sub && n.r >= 30;
+    const totalH = lines.length * lh;
+    let baseY = -totalH/2 + lh*0.4;
+    if (hasSub) baseY -= fs * 0.5;
 
     lines.forEach((line, i) => {
-      // Clip line to fit inside node with 6px padding per side
-      const maxW = (n.r - 6) * 2;
-      const approxW = line.length * fs * 0.6;
-      const displayLine = approxW > maxW ? clipToWidth(line, maxW, fs) : line;
+      const maxW = (n.r - 7) * 2;
+      const approxW = line.length * fs * 0.58;
+      const disp = approxW > maxW ? clipW(line, maxW, fs) : line;
       g.append('text')
         .attr('y', baseY + i*lh)
-        .attr('text-anchor','middle')
-        .attr('font-family','Sora,sans-serif')
+        .attr('text-anchor', 'middle')
+        .attr('font-family', 'Inter, sans-serif')
         .attr('font-size', fs).attr('font-weight', 700)
         .attr('fill', cat.text)
-        .attr('paint-order','stroke')
-        .attr('stroke','transparent').attr('stroke-width',0)
-        .text(displayLine);
+        .text(disp);
     });
 
     if (hasSub) {
-      const subFs = Math.max(6.5, fs*0.68);
-      const subText = n.sub.length > 20 ? n.sub.slice(0,19)+'…' : n.sub;
+      const sf = Math.max(6.5, fs * 0.7);
+      const subT = n.sub.length > 22 ? n.sub.slice(0,21)+'…' : n.sub;
       g.append('text')
-        .attr('y', baseY + totalLabelH + subFs*0.5)
-        .attr('text-anchor','middle')
-        .attr('font-family','Sora,sans-serif')
-        .attr('font-size', subFs).attr('font-weight', 400)
-        .attr('fill', cat.text).attr('opacity', 0.55)
-        .text(subText);
-    }
-
-    // Out-of-scope label below node (small, muted)
-    if (n.scope==='out') {
-      g.append('text').attr('y', n.r+13).attr('text-anchor','middle')
-        .attr('font-family','Sora,sans-serif').attr('font-size',7).attr('font-weight',600)
-        .attr('fill','rgba(0,0,0,0.28)').attr('letter-spacing','0.06em')
-        .text('OUT OF SCOPE');
+        .attr('y', baseY + totalH + sf*0.6)
+        .attr('text-anchor', 'middle')
+        .attr('font-family', 'Inter, sans-serif')
+        .attr('font-size', sf).attr('font-weight', 400)
+        .attr('fill', cat.text).attr('opacity', isRisk ? 0.6 : 0.55)
+        .text(subT);
     }
 
     // Events
     g.on('mouseenter', ev => {
-      if (n.id===selectedId) return;
+      if (n.id === selectedId) return;
       ttN.textContent = n.label;
-      ttS.textContent = n.sub||'';
-      const w=worstStatus(n.id);
-      if (w==='broken')   { ttSt.textContent='⚠ Broken relationship'; ttSt.style.background='rgba(192,80,80,0.18)'; ttSt.style.color='#FF9090'; }
-      else if (w==='strained') { ttSt.textContent='~ Strained relationship'; ttSt.style.background='rgba(232,160,64,0.18)'; ttSt.style.color='#FFB060'; }
+      ttS.textContent = n.sub || '';
+      const w = worstStatus(n.id);
+      if (w==='broken') { ttSt.textContent='⚠ Broken relationship'; ttSt.style.background='rgba(217,48,48,0.2)'; ttSt.style.color='#FF8080'; }
+      else if (w==='strained') { ttSt.textContent='~ Strained relationship'; ttSt.style.background='rgba(212,128,32,0.2)'; ttSt.style.color='#FFA040'; }
       else { ttSt.textContent=''; ttSt.style.background=''; ttSt.style.color=''; }
       tt.classList.add('show');
     })
@@ -1083,7 +985,6 @@ function render() {
     });
   });
 
-  // Canvas click = deselect
   svg.on('click', ev => {
     if (ev.target===svg.node()||ev.target.tagName==='svg') {
       selectedId=null; clearSidebar(); render();
@@ -1091,23 +992,19 @@ function render() {
   });
 }
 
-// Text wrapping helpers
-function wrapText(words, charsPerLine) {
+function wrapText(words, cpl) {
   if (!words.length) return [''];
-  const lines = [];
-  let cur = '';
+  const lines = []; let cur = '';
   words.forEach(w => {
-    const test = cur ? cur+' '+w : w;
-    if (test.length <= charsPerLine) { cur=test; }
-    else { if (cur) lines.push(cur); cur=w; }
+    const t = cur ? cur+' '+w : w;
+    if (t.length <= cpl) { cur = t; } else { if (cur) lines.push(cur); cur = w; }
   });
   if (cur) lines.push(cur);
   return lines.length ? lines : [words.join(' ')];
 }
-function clipToWidth(text, maxW, fs) {
-  const approxCharW = fs * 0.6;
-  const maxChars = Math.floor(maxW / approxCharW);
-  return text.length > maxChars ? text.slice(0, maxChars-1)+'…' : text;
+function clipW(text, maxW, fs) {
+  const mc = Math.floor(maxW / (fs * 0.58));
+  return text.length > mc ? text.slice(0, mc-1)+'…' : text;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1120,15 +1017,15 @@ function clearSidebar() {
     <div class="sb-empty">
       <div class="sb-empty-icon">◎</div>
       <div class="sb-empty-title">Stakeholder Detail</div>
-      <div class="sb-empty-desc">Click any node to explore goals, friction, flow types, channels, and interventions.</div>
+      <div class="sb-empty-desc">Click any node to explore goals, friction points, flow types, channels, and intervention opportunities.</div>
     </div>`;
 }
 
 function populateSidebar(n) {
   const cat = CAT[n.cat];
   const ws  = worstStatus(n.id);
-  const outE = EDGES.filter(e=>e.s===n.id && edgeVisible(e));
-  const inE  = EDGES.filter(e=>e.t===n.id && edgeVisible(e));
+  const outE = EDGES.filter(e => e.s===n.id && edgeVisible(e));
+  const inE  = EDGES.filter(e => e.t===n.id && edgeVisible(e));
   const connIds = new Set([...outE.map(e=>e.t),...inE.map(e=>e.s)]);
 
   document.getElementById('sb-kicker').textContent = cat.label.toUpperCase();
@@ -1138,110 +1035,100 @@ function populateSidebar(n) {
     ? `<span class="stag inscope">🎯 In Scope</span>`
     : `<span class="stag outscope">⊘ Out of Scope</span>`;
   const wsTag = ws==='broken'
-    ? `<span class="stag broken">⚠ Friction Present</span>`
+    ? `<span class="stag broken">⚠ Broken</span>`
     : ws==='strained'
     ? `<span class="stag strained">~ Strained</span>`
     : `<span class="stag healthy">✓ Functioning</span>`;
 
   let h = `<div class="sb-ani">`;
 
-  // Identity + description
   h += `<div class="sbs">
-    <div class="node-badge" style="background:${cat.color}1A;color:${cat.color};border:1.5px solid ${cat.color}44;">
-      <span style="width:6px;height:6px;border-radius:50%;background:${cat.color};display:inline-block;flex-shrink:0;"></span>
+    <div class="node-badge" style="background:${cat.fill}22;color:${n.cat==='risk'?'#C02020':cat.stroke};border:1.5px solid ${cat.stroke}44;">
+      <span style="width:7px;height:7px;border-radius:50%;background:${n.cat==='risk'?'white':cat.fill};border:${n.cat==='risk'?'2px dashed #D93030':'none'};display:inline-block;flex-shrink:0;"></span>
       ${cat.label}
     </div>
     <p class="sb-desc">${n.desc}</p>
     <div class="status-row">${wsTag}${scopeTag}</div>
   </div>`;
 
-  // Profile meters
   h += `<div class="sbs">
     <div class="sbs-head">Stakeholder Profile</div>
     <div class="inf-bar">
-      ${ir('Power',n.power,cat.color)}
-      ${ir('Interest',n.interest,cat.color)}
-      ${ir('Emotional Load',n.emotionalLoad,cat.color)}
-      ${ir('Connections',Math.min(100,connIds.size*12),cat.color,connIds.size)}
+      ${ir('Power', n.power, cat.stroke)}
+      ${ir('Interest', n.interest, cat.stroke)}
+      ${ir('Emotional Load', n.emotionalLoad, cat.stroke)}
+      ${ir('Connections', Math.min(100, connIds.size*12), cat.stroke, connIds.size)}
     </div>
   </div>`;
 
-  // Goals
   if (n.goals?.length) {
     h += `<div class="sbs"><div class="sbs-head">Goals <span class="sbs-count">${n.goals.length}</span></div><div class="goal-list">`;
-    n.goals.forEach(g => h+=`<div class="goal-item"><div class="goal-dot" style="background:${cat.color}"></div><span>${g}</span></div>`);
+    n.goals.forEach(g => h += `<div class="goal-item"><div class="goal-dot" style="background:${cat.stroke}"></div><span>${g}</span></div>`);
     h += `</div></div>`;
   }
 
-  // Pain points
   if (n.painPoints?.length) {
     h += `<div class="sbs"><div class="sbs-head" style="color:var(--broken)">⚠ Friction Points <span class="sbs-count">${n.painPoints.length}</span></div>`;
-    n.painPoints.forEach(p => h+=`<div class="pain-card"><div class="pain-head">⬤ ${p.head}</div>${p.body}</div>`);
+    n.painPoints.forEach(p => h += `<div class="pain-card"><div class="pain-head">⬤ ${p.head}</div>${p.body}</div>`);
     h += `</div>`;
   }
 
-  // Channels
   if (n.channels?.length) {
-    const chCol = {'Terra Dotta':['#4A9EC415','#2A7AA0'],'Email':['#C0505015','#A03030'],'Canvas':['#5AB87015','#3A7A52'],'In-person':['#7A8C6E15','#5A7A4A']};
+    const chColMap = {'Terra Dotta':['#5090C020','#2060A0'],'Email':['#D9303020','#A01010'],'Canvas':['#48A86020','#287840'],'In-person':['#48A86015','#287840']};
     h += `<div class="sbs"><div class="sbs-head">Channels</div><div class="ch-wrap">`;
     n.channels.forEach(c => {
-      const [bg,fg]=chCol[c]||['rgba(0,0,0,0.05)','var(--muted)'];
-      h+=`<span class="ch-pill" style="background:${bg};color:${fg};">${c}</span>`;
+      const [bg,fg] = chColMap[c] || ['rgba(0,0,0,0.05)','var(--muted)'];
+      h += `<span class="ch-pill" style="background:${bg};color:${fg};">${c}</span>`;
     });
     h += `</div></div>`;
   }
 
-  // Interventions
   if (n.interventions?.length) {
     h += `<div class="sbs"><div class="sbs-head" style="color:#2E7A46">💡 Interventions</div>`;
     n.interventions.forEach(iv => {
-      const [title,...rest]=iv.split(':');
-      h+=`<div class="int-card"><div class="int-head">→ ${title}</div><div class="int-body">${rest.join(':')}</div></div>`;
+      const [title,...rest] = iv.split(':');
+      h += `<div class="int-card"><div class="int-head">→ ${title}</div><div class="int-body">${rest.join(':')}</div></div>`;
     });
     h += `</div>`;
   }
 
-  // Outgoing flows
   if (outE.length) {
     h += `<div class="sbs"><div class="sbs-head">Sends <span class="sbs-count">${outE.length}</span></div><div class="flow-list">`;
-    outE.forEach(e => h += fc(e,byId[e.t],'→',cat.color));
+    outE.forEach(e => h += makeFlowCard(e, byId[e.t], '→', cat.stroke));
     h += `</div></div>`;
   }
 
-  // Incoming flows
   if (inE.length) {
     h += `<div class="sbs"><div class="sbs-head">Receives <span class="sbs-count">${inE.length}</span></div><div class="flow-list">`;
-    inE.forEach(e => h += fc(e,byId[e.s],'←',CAT[byId[e.s]?.cat]?.color||'#999'));
+    inE.forEach(e => h += makeFlowCard(e, byId[e.s], '←', CAT[byId[e.s]?.cat]?.stroke || '#888'));
     h += `</div></div>`;
   }
 
-  // Connected chips
   if (connIds.size) {
     h += `<div class="sbs"><div class="sbs-head">Connected <span class="sbs-count">${connIds.size}</span></div><div class="conn-wrap">`;
     connIds.forEach(id => {
-      const cn=byId[id]; if(!cn) return;
-      const cc=CAT[cn.cat];
-      h+=`<span class="conn-chip" data-id="${id}" style="border-color:${cc.color}55;color:${cc.color};">${cn.label}</span>`;
+      const cn = byId[id]; if (!cn) return;
+      const cc = CAT[cn.cat];
+      h += `<span class="conn-chip" data-id="${id}" style="border-color:${cc.stroke}55;color:${cc.stroke};">${cn.label}</span>`;
     });
     h += `</div></div>`;
   }
 
   h += `</div>`;
   document.getElementById('sb-body').innerHTML = h;
-
-  document.querySelectorAll('.conn-chip[data-id]').forEach(c=>c.addEventListener('click',()=>jumpTo(c.dataset.id)));
-  document.querySelectorAll('.flow-card[data-id]').forEach(c=>c.addEventListener('click',()=>jumpTo(c.dataset.id)));
+  document.querySelectorAll('.conn-chip[data-id]').forEach(c => c.addEventListener('click', () => jumpTo(c.dataset.id)));
+  document.querySelectorAll('.flow-card[data-id]').forEach(c => c.addEventListener('click', () => jumpTo(c.dataset.id)));
 }
 
 function jumpTo(id) {
-  const node=byId[id]; if(!node) return;
-  selectedId=id; populateSidebar(node); render();
-  const W=document.getElementById('cvs').clientWidth, H=document.getElementById('cvs').clientHeight;
+  const node = byId[id]; if (!node) return;
+  selectedId = id; populateSidebar(node); render();
+  const W = document.getElementById('cvs').clientWidth, H = document.getElementById('cvs').clientHeight;
   svg.transition().duration(480).ease(d3.easeCubicInOut)
-    .call(zoom.transform,d3.zoomIdentity.translate(W/2-xform.k*node.x,H/2-xform.k*node.y).scale(xform.k));
+    .call(zoom.transform, d3.zoomIdentity.translate(W/2-xform.k*node.x, H/2-xform.k*node.y).scale(xform.k));
 }
 
-function ir(label,val,color,disp) {
+function ir(label, val, color, disp) {
   return `<div class="inf-row">
     <span class="inf-lbl">${label}</span>
     <div class="inf-track"><div class="inf-fill" style="width:${Math.min(100,val)}%;background:${color}"></div></div>
@@ -1249,20 +1136,18 @@ function ir(label,val,color,disp) {
   </div>`;
 }
 
-function fc(edge, other, dir, nodeColor) {
+function makeFlowCard(edge, other, dir, nodeColor) {
   if (!other) return '';
-  const fc2 = FLOW[edge.flow]?.color||'#999';
+  const fc = FLOW[edge.flow]?.color || '#888';
   const stCls = edge.status==='broken'?'broken':edge.status==='strained'?'strained':'healthy';
   const stLbl = edge.status==='broken'?'✕ Broken':edge.status==='strained'?'~ Strained':'✓ Healthy';
   return `<div class="flow-card" data-id="${other.id}">
-    <div class="flow-dot" style="background:${fc2}"></div>
+    <div class="flow-dot" style="background:${fc}"></div>
     <div class="flow-inner">
       <div class="flow-dir">${FLOW[edge.flow]?.label||edge.flow} ${dir} ${other.label}</div>
       <div class="flow-lbl">${edge.label}</div>
       ${edge.channel?`<div class="flow-ch"><span style="width:5px;height:5px;border-radius:50%;background:${nodeColor};display:inline-block;"></span>${edge.channel}</div>`:''}
-      ${edge.friction
-        ?`<div class="flow-status ${stCls}">${stLbl}: ${edge.friction}</div>`
-        :`<div class="flow-status ${stCls}">${stLbl}</div>`}
+      ${edge.friction?`<div class="flow-status ${stCls}">${stLbl}: ${edge.friction}</div>`:`<div class="flow-status ${stCls}">${stLbl}</div>`}
     </div>
   </div>`;
 }
@@ -1270,8 +1155,8 @@ function fc(edge, other, dir, nodeColor) {
 // ═══════════════════════════════════════════════════════
 // CONTROLS
 // ═══════════════════════════════════════════════════════
-document.getElementById('zi').onclick = () => svg.transition().duration(240).call(zoom.scaleBy,1.3);
-document.getElementById('zo').onclick = () => svg.transition().duration(240).call(zoom.scaleBy,0.77);
+document.getElementById('zi').onclick = () => svg.transition().duration(240).call(zoom.scaleBy, 1.3);
+document.getElementById('zo').onclick = () => svg.transition().duration(240).call(zoom.scaleBy, 0.77);
 document.getElementById('zf').onclick = () => fitView();
 
 document.getElementById('toggle-sb').onclick = function() {
@@ -1281,37 +1166,35 @@ document.getElementById('toggle-sb').onclick = function() {
 
 document.querySelectorAll('.phase-pill').forEach(btn => btn.addEventListener('click', () => {
   activePhase = btn.dataset.phase;
-  document.querySelectorAll('.phase-pill').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.phase-pill').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  selectedId=null; clearSidebar();
-  const pb=document.getElementById('phase-badge');
-  const pd=document.getElementById('phase-dot');
-  const pt=document.getElementById('phase-text');
-  if (activePhase!=='all') {
-    const pm=PHASES_META[activePhase];
-    pd.style.background=pm.color; pt.textContent=pm.label; pb.classList.add('visible');
+  selectedId = null; clearSidebar();
+  const pb = document.getElementById('phase-badge');
+  const pd = document.getElementById('phase-dot');
+  const pt = document.getElementById('phase-text');
+  if (activePhase !== 'all') {
+    const pm = PHASES_META[activePhase];
+    pd.style.background = pm.color; pt.textContent = pm.label; pb.classList.add('visible');
   } else pb.classList.remove('visible');
-  render();
-  requestAnimationFrame(()=>fitView());
+  render(); requestAnimationFrame(() => fitView());
 }));
 
 document.querySelectorAll('.vbtn[data-view]').forEach(btn => btn.addEventListener('click', () => {
-  activeView=btn.dataset.view;
-  document.querySelectorAll('.vbtn[data-view]').forEach(b=>b.classList.remove('active'));
+  activeView = btn.dataset.view;
+  document.querySelectorAll('.vbtn[data-view]').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   render();
 }));
 
 document.getElementById('search').addEventListener('input', e => {
-  searchQ=e.target.value.toLowerCase().trim();
-  selectedId=null; clearSidebar(); render();
+  searchQ = e.target.value.toLowerCase().trim();
+  selectedId = null; clearSidebar(); render();
 });
 
 window.addEventListener('resize', render);
 
-// ─ Init ──────────────────────────────────────────────
 render();
-requestAnimationFrame(()=>requestAnimationFrame(()=>fitView()));
+requestAnimationFrame(() => requestAnimationFrame(() => fitView()));
 </script>
 </body>
 </html>
